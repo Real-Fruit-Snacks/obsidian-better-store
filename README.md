@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-63f2ab?style=flat-square)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/Real-Fruit-Snacks/obsidian-better-store?style=flat-square&color=63f2ab)](https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/latest)
-[![Obsidian 1.5.0+](https://img.shields.io/badge/Obsidian-1.5.0%2B-6bdcff?style=flat-square)](https://obsidian.md)
+[![Obsidian 1.13.0+](https://img.shields.io/badge/Obsidian-1.13.0%2B-6bdcff?style=flat-square)](https://obsidian.md)
 [![CI](https://img.shields.io/github/actions/workflow/status/Real-Fruit-Snacks/obsidian-better-store/ci.yml?style=flat-square&label=CI)](https://github.com/Real-Fruit-Snacks/obsidian-better-store/actions/workflows/ci.yml)
 
 **[Documentation site](https://real-fruit-snacks.github.io/obsidian-better-store/)** · **[Latest release](https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/latest)**
@@ -39,9 +39,11 @@ It deliberately does **not** install, update, or remove plugin files itself — 
 
 ### Manual
 
-1. Download `better-store-x.y.z.zip` from the [latest release](https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/latest).
-2. Extract it into `YourVault/.obsidian/plugins/` (it contains the `better-store/` folder with `main.js`, `manifest.json`, `styles.css`, `versions.json`).
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/latest).
+2. Place them in `YourVault/.obsidian/plugins/better-store/`.
 3. Settings → Community plugins → enable **Better Store**.
+
+Release assets carry [GitHub artifact attestations](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations) — verify provenance with `gh attestation verify main.js -R Real-Fruit-Snacks/obsidian-better-store`.
 
 ### Via BRAT
 
@@ -101,9 +103,9 @@ src/
     └── store-context.ts typed access to Obsidian internals
 ```
 
-## Self-hosting & Offline
+## Self-hosting
 
-Every release includes an **offline bundle** (`better-store-x.y.z-offline-bundle.zip`): the full source tree, a prebuilt `main.js`, and a `.gitlab-ci.yml` so the project can be hosted and built on a self-hosted or air-gapped GitLab instance. The GitLab pipeline needs only a local `node:20` image (plus an npm mirror if the instance has no internet) and publishes the same artifacts and Pages site.
+The repository ships a `.gitlab-ci.yml`, so the project can also be hosted and built on a self-hosted GitLab instance — the pipeline runs the same verify/build steps, publishes the plugin files as artifacts, and serves the docs site via GitLab Pages.
 
 ## Development
 

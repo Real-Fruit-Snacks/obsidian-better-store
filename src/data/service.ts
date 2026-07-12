@@ -177,7 +177,7 @@ export class DataService {
     let manifest: { version?: string; fundingUrl?: string; minAppVersion?: string } = {};
     if (manifestRaw != null) {
       try {
-        manifest = JSON.parse(manifestRaw);
+        manifest = JSON.parse(manifestRaw) as { version?: string; fundingUrl?: string; minAppVersion?: string };
       } catch {
         manifest = {};
       }

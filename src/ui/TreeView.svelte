@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type BetterStorePlugin from "../main";
   import type { PluginEntry } from "../data/types";
   import type { TreeGroup, TreeModel } from "../data/tree";
   import { formatCount } from "../data/format";
@@ -7,42 +8,29 @@
   let {
     model,
     sort,
+    plugin,
     selected,
     installedIds,
     onSelect,
   }: {
     model: TreeModel;
     sort: string;
+    plugin: BetterStorePlugin;
     selected: PluginEntry | null;
     installedIds: Set<string>;
     onSelect: (entry: PluginEntry) => void;
   } = $props();
 
   const FOLDER_PAGE = 150;
-  const EXPANDED_KEY = "better-store-tree-expanded";
 
-  // Expanded folders persist per sort mode, so the tree reopens where the
-  // user left it. The parent keys this component by sort, so init is enough.
-  function loadExpanded(): Set<string> {
-    try {
-      const all = JSON.parse(localStorage.getItem(EXPANDED_KEY) ?? "{}") as Record<string, unknown>;
-      return new Set(Array.isArray(all[sort]) ? (all[sort] as string[]) : []);
-    } catch {
-      return new Set();
-    }
-  }
-
-  let expanded = $state<Set<string>>(loadExpanded());
+  // Expanded folders persist per sort mode (in plugin data), so the tree
+  // reopens where the user left it. The parent keys this component by sort.
+  let expanded = $state<Set<string>>(new Set(plugin.settings.ui.treeExpanded[sort] ?? []));
   let folderLimits = $state<Record<string, number>>({});
 
   function persistExpanded(): void {
-    try {
-      const all = JSON.parse(localStorage.getItem(EXPANDED_KEY) ?? "{}") as Record<string, unknown>;
-      all[sort] = [...expanded];
-      localStorage.setItem(EXPANDED_KEY, JSON.stringify(all));
-    } catch {
-      // storage unavailable — expansion just won't persist
-    }
+    plugin.settings.ui.treeExpanded = { ...plugin.settings.ui.treeExpanded, [sort]: [...expanded] };
+    void plugin.saveSettings();
   }
 
   function toggleFolder(key: string): void {

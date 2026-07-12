@@ -6,6 +6,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -21,23 +23,15 @@ jobs:
       - run: npm test
       - run: npm run build
 
-      - name: Package release assets
-        run: |
-          # Obsidian install zip: unpack into .obsidian/plugins/
-          mkdir -p dist/better-store
-          cp main.js manifest.json styles.css versions.json dist/better-store/
-
-          # GitHub rejects dotfile asset names, so upload under a plain name.
-          cp .gitlab-ci.yml dist/gitlab-ci.yml
-          (cd dist && zip -r "better-store-${GITHUB_REF_NAME}.zip" better-store)
-
-          # Offline bundle: full source + prebuilt main.js + GitLab CI,
-          # everything needed to host/build on an air-gapped GitLab.
-          git archive --format=zip -o dist/source.zip HEAD
-          mkdir -p dist/bundle
-          (cd dist/bundle && unzip -q ../source.zip)
-          cp main.js dist/bundle/
-          (cd dist/bundle && zip -qr "../better-store-${GITHUB_REF_NAME}-offline-bundle.zip" .)
+      # Cryptographic provenance so users can verify the assets were built
+      # from this repository: gh attestation verify main.js -R <repo>
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
 
       - name: Create GitHub release
         env:
@@ -46,6 +40,4 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             --title "Better Store $GITHUB_REF_NAME" \
             --generate-notes \
-            main.js manifest.json styles.css versions.json dist/gitlab-ci.yml \
-            "dist/better-store-${GITHUB_REF_NAME}.zip" \
-            "dist/better-store-${GITHUB_REF_NAME}-offline-bundle.zip"
+            main.js manifest.json styles.css

@@ -1,12 +1,12 @@
-# GitLab CI for self-hosted or air-gapped GitLab instances.
+# GitLab CI for self-hosted GitLab instances.
 #
 # Requirements on the runner:
-#   - a node:20 image available locally (or any runner with Node 20+)
-#   - an npm registry mirror if the instance has no internet access
-#     (set npm config: registry=https://your-mirror/)
+#   - a node:20 image (or any runner with Node 20+)
+#   - point npm at your instance's registry mirror if you use one
+#     (npm config: registry=https://your-mirror/)
 #
-# The build job publishes the four files an Obsidian vault needs
-# (main.js, manifest.json, styles.css, versions.json) as artifacts.
+# The build job publishes the three files an Obsidian vault needs
+# (main.js, manifest.json, styles.css) as artifacts.
 # The pages job serves the docs/ site via GitLab Pages.
 
 stages:
@@ -35,7 +35,6 @@ build:
       - main.js
       - manifest.json
       - styles.css
-      - versions.json
 
 pages:
   stage: deploy

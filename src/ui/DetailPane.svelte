@@ -33,12 +33,11 @@
   let enrichError = $state<string | null>(null);
   let readmeLoading = $state(true);
 
-  const WIDTH_KEY = "better-store-detail-width";
   const MIN_WIDTH = 300;
   const MAX_WIDTH = 900;
 
   function loadWidth(): number {
-    const stored = Number(localStorage.getItem(WIDTH_KEY));
+    const stored = plugin.settings.ui.detailWidth;
     return stored >= MIN_WIDTH && stored <= MAX_WIDTH ? stored : 380;
   }
 
@@ -54,7 +53,8 @@
     const onUp = () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
-      localStorage.setItem(WIDTH_KEY, String(Math.round(width)));
+      plugin.settings.ui.detailWidth = Math.round(width);
+      void plugin.saveSettings();
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);

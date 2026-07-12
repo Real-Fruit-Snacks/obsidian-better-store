@@ -1,8 +1,8 @@
 {
   "id": "better-store",
   "name": "Better Store",
-  "version": "0.2.0",
-  "minAppVersion": "1.5.0",
+  "version": "0.2.1",
+  "minAppVersion": "1.13.0",
   "description": "A polished community plugin browser: filters, rich details, trending, and installed-plugin management.",
   "author": "Real-Fruit-Snacks",
   "authorUrl": "https://github.com/Real-Fruit-Snacks",

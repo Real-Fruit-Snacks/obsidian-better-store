@@ -86,12 +86,12 @@
   let renderLimit = $state(PAGE_SIZE);
   let shown = $derived(visible.slice(0, renderLimit));
 
-  const LAYOUT_KEY = "better-store-layout";
-  let layout = $state<"grid" | "tree">(localStorage.getItem(LAYOUT_KEY) === "tree" ? "tree" : "grid");
+  let layout = $state<"grid" | "tree">(plugin.settings.ui.layout);
 
   function toggleLayout(): void {
     layout = layout === "grid" ? "tree" : "grid";
-    localStorage.setItem(LAYOUT_KEY, layout);
+    plugin.settings.ui.layout = layout;
+    void plugin.saveSettings();
   }
 
   let tree = $derived(
@@ -327,6 +327,7 @@
             <TreeView
               model={tree}
               sort={effectiveFilters.sort}
+              {plugin}
               {selected}
               {installedIds}
               onSelect={(entry) => (selected = entry)}

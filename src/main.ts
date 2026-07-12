@@ -100,12 +100,12 @@ export default class BetterStorePlugin extends Plugin {
   async activateView(): Promise<void> {
     const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_BETTER_STORE)[0];
     if (existing) {
-      this.app.workspace.revealLeaf(existing);
+      await this.app.workspace.revealLeaf(existing);
       return;
     }
     const leaf = this.app.workspace.getLeaf("tab");
     await leaf.setViewState({ type: VIEW_TYPE_BETTER_STORE, active: true });
-    this.app.workspace.revealLeaf(leaf);
+    await this.app.workspace.revealLeaf(leaf);
   }
 
   createService(): DataService {
@@ -134,7 +134,27 @@ export default class BetterStorePlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    this.settings = { ...structuredClone(DEFAULT_SETTINGS), ...((await this.loadData()) ?? {}) };
+    const raw = (((await this.loadData()) as Partial<BetterStoreSettings> | null) ?? {});
+    this.settings = { ...structuredClone(DEFAULT_SETTINGS), ...raw };
+    this.settings.ui = { ...structuredClone(DEFAULT_SETTINGS.ui), ...(raw.ui ?? {}) };
+    this.migrateLegacyUiState();
+  }
+
+  /** Pre-0.2.1 versions kept UI state in localStorage; move it into plugin data. */
+  private migrateLegacyUiState(): void {
+    try {
+      const layout = localStorage.getItem("better-store-layout");
+      if (layout === "grid" || layout === "tree") this.settings.ui.layout = layout;
+      const width = Number(localStorage.getItem("better-store-detail-width"));
+      if (width >= 300 && width <= 900) this.settings.ui.detailWidth = width;
+      const expanded = localStorage.getItem("better-store-tree-expanded");
+      if (expanded) this.settings.ui.treeExpanded = JSON.parse(expanded) as Record<string, string[]>;
+      for (const key of ["better-store-layout", "better-store-detail-width", "better-store-tree-expanded"]) {
+        localStorage.removeItem(key);
+      }
+    } catch {
+      // nothing to migrate
+    }
   }
 
   private currentServiceKey(): string {

@@ -166,19 +166,22 @@ footer {
       <div class="panel"><span class="manifest">Filters &amp; sorting</span><p>Search, heuristic categories, updated-within, minimum downloads, hide installed; sort by downloads, recency, name, or trending.</p></div>
       <div class="panel"><span class="manifest">Rich details</span><p>Rendered README with images, GitHub stars and open issues, recent releases, and funding links — fetched lazily, cached locally.</p></div>
       <div class="panel"><span class="manifest">Trending</span><p>Local download-delta tracking that builds up as you use the plugin. No external service, no telemetry.</p></div>
-      <div class="panel"><span class="manifest">Installed dashboard</span><p>Versions vs. latest, update badges, enable/disable toggles, staleness warnings, and changelog links.</p></div>
-      <div class="panel"><span class="manifest">Ignore list</span><p>Hide plugins you never want to see again. Managed from any card or from settings.</p></div>
+      <div class="panel"><span class="manifest">Installed dashboard</span><p>Versions vs. latest, update badges, enable/disable toggles with bulk select, staleness warnings, changelog links.</p></div>
+      <div class="panel"><span class="manifest">Tree view</span><p>Explorer-style folders derived from the active sort — download tiers, recency, A&#8211;Z, trending — with a stale drawer.</p></div>
+      <div class="panel"><span class="manifest">Quick jump &amp; keyboard</span><p>A fuzzy search command opens any plugin's details from anywhere; arrow keys drive the grid and tree.</p></div>
+      <div class="panel"><span class="manifest">Update alerts</span><p>A background check badges the ribbon icon (and optionally notifies) when installed plugins have updates.</p></div>
+      <div class="panel"><span class="manifest">Ignore rules</span><p>Hide a plugin, everything by an author, or an entire category. All reviewable in settings.</p></div>
     </div>
   </section>
 
   <section id="install">
     <span class="manifest">// Installation</span>
     <h3>Manual install</h3>
-    <pre><span class="c"># 1. download better-store-x.y.z.zip from the latest release</span>
-<span class="c"># 2. extract into your vault:</span>
+    <pre><span class="c"># 1. download main.js, manifest.json, styles.css from the latest release</span>
+<span class="c"># 2. place them in your vault:</span>
 <span class="a">&#10095;</span> YourVault/.obsidian/plugins/better-store/
-<span class="c">#    (main.js, manifest.json, styles.css, versions.json)</span>
-<span class="c"># 3. Settings &#8594; Community plugins &#8594; enable "Better Store"</span></pre>
+<span class="c"># 3. Settings &#8594; Community plugins &#8594; enable "Better Store"</span>
+<span class="c"># assets are provenance-attested: gh attestation verify main.js -R Real-Fruit-Snacks/obsidian-better-store</span></pre>
     <h3>Via BRAT</h3>
     <pre><span class="a">&#10095;</span> BRAT: Add beta plugin &#8594; Real-Fruit-Snacks/obsidian-better-store</pre>
     <div class="callout">Better Store never installs, updates, or removes other plugins' files. Install actions hand off to Obsidian's native Community Plugins dialog.</div>
@@ -199,8 +202,8 @@ footer {
   </section>
 
   <section id="hosting">
-    <span class="manifest">// Self-hosting &amp; offline</span>
-    <p style="color:var(--text-soft)">Every release ships an <strong>offline bundle</strong>: full source, prebuilt <code>main.js</code>, and a <code>.gitlab-ci.yml</code> so the project can be hosted and built on a self-hosted or air-gapped GitLab instance (needs only a local <code>node:20</code> image and an npm mirror).</p>
+    <span class="manifest">// Self-hosting</span>
+    <p style="color:var(--text-soft)">The repository ships a <code>.gitlab-ci.yml</code>, so the project can also be hosted and built on a self-hosted GitLab instance — same verify/build pipeline, plugin artifacts, and a GitLab Pages copy of this site.</p>
   </section>
 
   <footer>
