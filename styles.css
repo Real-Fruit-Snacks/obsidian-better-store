@@ -526,7 +526,8 @@
 }
 
 .bs-tree {
-  padding: 0 8px 16px;
+  padding: 0 12px 16px;
+  max-width: 760px;
   font-size: var(--font-ui-small);
   user-select: none;
 }
@@ -553,17 +554,36 @@
   color: var(--text-normal);
 }
 
+.bs-tree-folder > .bs-icon:first-child {
+  color: var(--text-faint);
+}
+
+.bs-tree-folder > .bs-icon:nth-child(2) {
+  color: var(--interactive-accent);
+}
+
 .bs-tree-label {
   font-weight: 600;
 }
 
 .bs-tree-count {
-  margin-left: auto;
   color: var(--text-faint);
   font-size: 10.5px;
 }
 
+.bs-tree-count::before {
+  content: "(";
+}
+
+.bs-tree-count::after {
+  content: ")";
+}
+
 .bs-tree-stale .bs-tree-label {
+  color: var(--text-muted);
+}
+
+.bs-tree-stale > .bs-icon:nth-child(2) {
   color: var(--text-muted);
 }
 
