@@ -14,7 +14,17 @@ function entry(overrides: Partial<PluginEntry>): PluginEntry {
 }
 
 function ctx(overrides: Partial<FilterContext> = {}): FilterContext {
-  return { installedIds: new Set(), ignoredIds: new Set(), trendingDeltas: {}, now: NOW, ...overrides };
+  return {
+    installedIds: new Set(),
+    ignoredIds: new Set(),
+    ignoredAuthors: new Set(),
+    ignoredCategories: new Set(),
+    favoriteIds: new Set(),
+    newIds: new Set(),
+    trendingDeltas: {},
+    now: NOW,
+    ...overrides,
+  };
 }
 
 const entries: PluginEntry[] = [
@@ -57,5 +67,20 @@ describe("filterPlugins", () => {
     const copy = [...entries];
     filterPlugins(entries, { ...EMPTY_FILTER, sort: "name" }, ctx());
     expect(entries).toEqual(copy);
+  });
+
+  it("hides plugins by ignored author and ignored category", () => {
+    const c = ctx({ ignoredAuthors: new Set(["Ann"]), ignoredCategories: new Set(["Appearance"]) });
+    expect(filterPlugins(entries, EMPTY_FILTER, c).map((e) => e.id)).toEqual(["tasks"]);
+  });
+
+  it("starredOnly keeps only favorites", () => {
+    const c = ctx({ favoriteIds: new Set(["themer"]) });
+    expect(filterPlugins(entries, { ...EMPTY_FILTER, starredOnly: true }, c).map((e) => e.id)).toEqual(["themer"]);
+  });
+
+  it("newOnly keeps only recently added plugins", () => {
+    const c = ctx({ newIds: new Set(["ai-helper"]) });
+    expect(filterPlugins(entries, { ...EMPTY_FILTER, newOnly: true }, c).map((e) => e.id)).toEqual(["ai-helper"]);
   });
 });

@@ -22,6 +22,8 @@
   let toggleError = $state<string | null>(null);
   let query = $state("");
   let updatesOnly = $state(false);
+  let selectedIds = $state<Set<string>>(new Set());
+  let bulkBusy = $state(false);
 
   const api = getPluginsApi(plugin.app);
   const byId = $derived(new Map(entries.map((e) => [e.id, e])));
@@ -91,6 +93,33 @@
   function openNative(id: string): void {
     window.open(`obsidian://show-plugin?id=${encodeURIComponent(id)}`);
   }
+
+  function toggleSelect(id: string): void {
+    if (id === plugin.manifest.id) return;
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    selectedIds = next;
+  }
+
+  async function bulkToggle(enable: boolean): Promise<void> {
+    bulkBusy = true;
+    toggleError = null;
+    try {
+      for (const id of selectedIds) {
+        if (id === plugin.manifest.id) continue;
+        const isEnabled = api.enabledPlugins.has(id);
+        if (enable && !isEnabled) await api.enablePluginAndSave(id);
+        if (!enable && isEnabled) await api.disablePluginAndSave(id);
+      }
+    } catch (e) {
+      toggleError = `Bulk toggle stopped: ${e instanceof Error ? e.message : String(e)}`;
+    } finally {
+      bulkBusy = false;
+      selectedIds = new Set();
+      rebuild(lastLatest);
+    }
+  }
 </script>
 
 <div class="bs-installed">
@@ -109,6 +138,14 @@
     >
       Updates{#if !checking}&nbsp;({updateCount}){/if}
     </button>
+    {#if selectedIds.size > 0}
+      <span class="bs-bulk-actions">
+        <span class="bs-bulk-count">{selectedIds.size} selected</span>
+        <button class="bs-bulk-btn" disabled={bulkBusy} onclick={() => void bulkToggle(true)}>Enable</button>
+        <button class="bs-bulk-btn" disabled={bulkBusy} onclick={() => void bulkToggle(false)}>Disable</button>
+        <button class="bs-bulk-btn bs-bulk-clear" disabled={bulkBusy} onclick={() => (selectedIds = new Set())}>Clear</button>
+      </span>
+    {/if}
     <span class="bs-installed-summary">
       {#if checking}
         Checking for updates…
@@ -142,6 +179,17 @@
           : undefined}
       >
         <div class="bs-card-top">
+          {#if info.id !== plugin.manifest.id}
+            <input
+              type="checkbox"
+              class="bs-select"
+              class:bs-select-active={selectedIds.has(info.id)}
+              aria-label={`Select ${info.name} for bulk actions`}
+              checked={selectedIds.has(info.id)}
+              onclick={(e) => e.stopPropagation()}
+              onchange={() => toggleSelect(info.id)}
+            />
+          {/if}
           <span class="bs-card-name">{info.name}</span>
           {#if info.abandoned}
             <span class="bs-badge bs-badge-warn" title="No update in over a year">stale</span>

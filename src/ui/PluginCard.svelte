@@ -7,14 +7,20 @@
     entry,
     installed,
     selected,
+    starred,
+    isNew,
     onSelect,
+    onToggleStar,
     onIgnore,
   }: {
     entry: PluginEntry;
     installed: boolean;
     selected: boolean;
+    starred: boolean;
+    isNew: boolean;
     onSelect: () => void;
-    onIgnore: () => void;
+    onToggleStar: () => void;
+    onIgnore: (e: MouseEvent) => void;
   } = $props();
 </script>
 
@@ -34,17 +40,26 @@
 >
   <div class="bs-card-top">
     <span class="bs-card-name">{entry.name}</span>
+    {#if isNew}<span class="bs-badge bs-badge-new">New</span>{/if}
     {#if installed}<span class="bs-badge bs-badge-installed">Installed</span>{/if}
     <button
+      class="bs-star"
+      class:bs-star-active={starred}
+      title={starred ? "Unstar" : "Star"}
+      aria-label={starred ? `Unstar ${entry.name}` : `Star ${entry.name}`}
+      aria-pressed={starred}
+      onclick={(e) => { e.stopPropagation(); onToggleStar(); }}
+    ><Icon name="star" /></button>
+    <button
       class="bs-ignore"
-      title="Ignore this plugin"
-      aria-label="Ignore this plugin"
-      onclick={(e) => { e.stopPropagation(); onIgnore(); }}
+      title="Ignore options"
+      aria-label={`Ignore options for ${entry.name}`}
+      onclick={(e) => { e.stopPropagation(); onIgnore(e); }}
     ><Icon name="x" /></button>
   </div>
   <div class="bs-card-meta">
-    <span>{entry.author}</span>
     <span title="Downloads"><Icon name="download" />{formatCount(entry.downloads)}</span>
+    <span>{entry.author}</span>
     <span>{formatAge(entry.updated, Date.now())}</span>
   </div>
   <p class="bs-card-desc">{entry.description}</p>

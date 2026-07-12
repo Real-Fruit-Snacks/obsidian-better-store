@@ -65,6 +65,27 @@
     }
   }
 
+  /** Arrow-key navigation: Up/Down move between rows, Right/Left expand/collapse folders. */
+  function treeNav(node: HTMLElement) {
+    const handler = (e: KeyboardEvent) => {
+      if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
+      const rows = Array.from(node.querySelectorAll<HTMLElement>("[data-row]"));
+      const idx = rows.indexOf(document.activeElement as HTMLElement);
+      if (idx === -1) return;
+      e.preventDefault();
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        rows[idx + (e.key === "ArrowDown" ? 1 : -1)]?.focus();
+        return;
+      }
+      const key = rows[idx].dataset.key;
+      if (!key) return;
+      const open = expanded.has(key);
+      if ((e.key === "ArrowRight" && !open) || (e.key === "ArrowLeft" && open)) toggleFolder(key);
+    };
+    node.addEventListener("keydown", handler);
+    return { destroy: () => node.removeEventListener("keydown", handler) };
+  }
+
   let staleTotal = $derived(model.stale.reduce((n, g) => n + g.entries.length, 0));
 </script>
 
@@ -73,6 +94,8 @@
     class="bs-tree-folder"
     style={`--bs-depth:${depth}`}
     data-depth={depth}
+    data-row
+    data-key={key}
     role="button"
     tabindex="0"
     onclick={() => toggleFolder(key)}
@@ -89,6 +112,7 @@
         class:bs-tree-item-selected={selected?.id === entry.id}
         style={`--bs-depth:${depth + 1}`}
         data-depth={depth + 1}
+        data-row
         role="button"
         tabindex="0"
         onclick={() => onSelect(entry)}
@@ -105,6 +129,7 @@
         class="bs-tree-more"
         style={`--bs-depth:${depth + 1}`}
         data-depth={depth + 1}
+        data-row
         role="button"
         tabindex="0"
         onclick={() => showMore(key)}
@@ -116,7 +141,7 @@
   {/if}
 {/snippet}
 
-<div class="bs-tree">
+<div class="bs-tree" use:treeNav>
   {#each model.groups as group (group.label)}
     {@render folder(group, group.label, 0)}
   {/each}
@@ -125,6 +150,8 @@
     <div
       class="bs-tree-folder bs-tree-stale"
       style="--bs-depth:0"
+      data-row
+      data-key="__stale__"
       role="button"
       tabindex="0"
       onclick={() => toggleFolder("__stale__")}

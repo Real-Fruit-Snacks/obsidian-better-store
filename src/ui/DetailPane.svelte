@@ -1,12 +1,13 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import { MarkdownRenderer, sanitizeHTMLToDom } from "obsidian";
+  import { apiVersion, MarkdownRenderer, sanitizeHTMLToDom } from "obsidian";
   import type BetterStorePlugin from "../main";
   import type { BetterStoreView } from "../view";
   import type { PluginEntry } from "../data/types";
   import { RateLimitError, type Enrichment } from "../data/service";
   import { rewriteReadmeUrls } from "../data/readme";
   import { formatAge, formatCount } from "../data/format";
+  import { compareVersions } from "../data/versions";
   import Icon from "./Icon.svelte";
 
   let {
@@ -14,12 +15,16 @@
     view,
     entry,
     installed,
+    starred,
+    onToggleStar,
     onClose,
   }: {
     plugin: BetterStorePlugin;
     view: BetterStoreView;
     entry: PluginEntry;
     installed: boolean;
+    starred: boolean;
+    onToggleStar: () => void;
     onClose: () => void;
   } = $props();
 
@@ -95,6 +100,23 @@
   function openNative(): void {
     window.open(`obsidian://show-plugin?id=${encodeURIComponent(entry.id)}`);
   }
+
+  let incompatible = $derived(
+    enrichment?.minAppVersion != null && compareVersions(enrichment.minAppVersion, apiVersion) > 0
+  );
+
+  /** Render a release's markdown notes with the same sanitize pass as the README. */
+  function releaseNotes(node: HTMLElement, body: string) {
+    if (!body.trim()) {
+      node.createEl("p", { text: "No release notes provided.", cls: "bs-detail-note" });
+      return;
+    }
+    void MarkdownRenderer.render(plugin.app, rewriteReadmeUrls(body, entry.repo), node, "", view).then(() => {
+      const rendered = node.innerHTML;
+      node.empty();
+      node.appendChild(sanitizeHTMLToDom(rendered));
+    });
+  }
 </script>
 
 <aside class="bs-detail" style={`width:${width}px`}>
@@ -114,7 +136,17 @@
       </h3>
       <span class="bs-detail-author">by {entry.author}</span>
     </div>
-    <button class="bs-detail-close" title="Close" aria-label="Close details" onclick={onClose}><Icon name="x" /></button>
+    <div class="bs-detail-header-actions">
+      <button
+        class="bs-star"
+        class:bs-star-active={starred}
+        title={starred ? "Unstar" : "Star"}
+        aria-label={starred ? `Unstar ${entry.name}` : `Star ${entry.name}`}
+        aria-pressed={starred}
+        onclick={onToggleStar}
+      ><Icon name="star" /></button>
+      <button class="bs-detail-close" title="Close" aria-label="Close details" onclick={onClose}><Icon name="x" /></button>
+    </div>
   </div>
 
   <div class="bs-detail-stats">
@@ -125,6 +157,13 @@
       <span title="Open issues"><Icon name="circle-dot" />{formatCount(enrichment.openIssues)}</span>
     {/if}
   </div>
+
+  {#if incompatible && enrichment}
+    <div class="bs-compat-warning">
+      <Icon name="alert-triangle" />
+      Requires Obsidian {enrichment.minAppVersion} or newer — you're on {apiVersion}.
+    </div>
+  {/if}
 
   <div class="bs-detail-actions">
     <button class="mod-cta" onclick={openNative}>
@@ -143,11 +182,17 @@
   {#if enrichment && enrichment.releases.length > 0}
     <details class="bs-releases">
       <summary>Recent releases</summary>
-      <ul>
+      <div class="bs-release-list">
         {#each enrichment.releases as r, i (i)}
-          <li><a href={r.url} target="_blank" rel="noopener">{r.tag}</a> — {r.publishedAt.slice(0, 10)}</li>
+          <details class="bs-release">
+            <summary>
+              <a href={r.url} target="_blank" rel="noopener" onclick={(e) => e.stopPropagation()}>{r.tag}</a>
+              <span class="bs-release-date">{r.publishedAt.slice(0, 10)}</span>
+            </summary>
+            <div class="bs-release-notes" use:releaseNotes={r.body}></div>
+          </details>
         {/each}
-      </ul>
+      </div>
     </details>
   {/if}
 

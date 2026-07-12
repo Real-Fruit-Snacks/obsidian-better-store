@@ -91,6 +91,24 @@ describe("loadCatalog", () => {
     const deltas = await service.getTrendingDeltas();
     expect(deltas.dataview).toBe(50);
   });
+
+  it("tracks newly appearing plugins after the first-run baseline", async () => {
+    await service.loadCatalog(true);
+    expect((await service.getNewIds(14)).size).toBe(0);
+
+    io.time += 24 * HOUR;
+    io.responses.set(
+      REGISTRY_URL,
+      JSON.stringify([
+        { id: "dataview", name: "Dataview", author: "MB", description: "query your notes", repo: "blacksmithgu/obsidian-dataview" },
+        { id: "brand-new", name: "Brand New", author: "N", description: "fresh", repo: "n/brand-new" },
+      ])
+    );
+    await service.loadCatalog(true);
+    const fresh = await service.getNewIds(14);
+    expect(fresh.has("brand-new")).toBe(true);
+    expect(fresh.has("dataview")).toBe(false);
+  });
 });
 
 describe("enrichment", () => {
@@ -103,18 +121,33 @@ describe("enrichment", () => {
     io.responses.set("https://api.github.com/repos/a/b", JSON.stringify({ stargazers_count: 42, open_issues_count: 7 }));
     io.responses.set(
       "https://api.github.com/repos/a/b/releases?per_page=10",
-      JSON.stringify([{ tag_name: "1.2.0", published_at: "2026-01-01T00:00:00Z", html_url: "https://github.com/a/b/releases/tag/1.2.0" }])
+      JSON.stringify([
+        {
+          tag_name: "1.2.0",
+          published_at: "2026-01-01T00:00:00Z",
+          html_url: "https://github.com/a/b/releases/tag/1.2.0",
+          body: "## Fixed\n- a bug",
+        },
+      ])
     );
     io.responses.set(
       "https://raw.githubusercontent.com/a/b/HEAD/manifest.json",
-      JSON.stringify({ version: "1.2.0", fundingUrl: "https://ko-fi.com/x" })
+      JSON.stringify({ version: "1.2.0", fundingUrl: "https://ko-fi.com/x", minAppVersion: "1.6.0" })
     );
     const e = await service.getEnrichment("a/b");
     expect(e).toEqual({
       stars: 42,
       openIssues: 7,
-      releases: [{ tag: "1.2.0", publishedAt: "2026-01-01T00:00:00Z", url: "https://github.com/a/b/releases/tag/1.2.0" }],
+      releases: [
+        {
+          tag: "1.2.0",
+          publishedAt: "2026-01-01T00:00:00Z",
+          url: "https://github.com/a/b/releases/tag/1.2.0",
+          body: "## Fixed\n- a bug",
+        },
+      ],
       latestVersion: "1.2.0",
+      minAppVersion: "1.6.0",
       fundingUrl: "https://ko-fi.com/x",
     });
   });

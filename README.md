@@ -24,8 +24,16 @@ It deliberately does **not** install, update, or remove plugin files itself — 
 - **Heuristic categories** — Tasks, Sync & Backup, AI, Appearance, Editor, Export & Import, Calendar & Time, Data & Queries, Files & Organization, Publishing & Sharing, Integrations. The official registry has no categories, so these are keyword-derived — imperfect by design and easy to refine.
 - **Rich details** — rendered README with images (sanitized), GitHub stars and open issues, recent releases, and funding links, fetched lazily and cached.
 - **Trending** — local download-delta tracking across catalog refreshes. Builds up as you use the plugin; no external service, no telemetry.
-- **Installed dashboard** — current vs. latest version, update badges, enable/disable toggles, "stale" warnings for plugins unmaintained for a year+, changelog links.
-- **Ignore list** — hide plugins you never want to see again.
+- **Installed dashboard** — current vs. latest version, update badges, enable/disable toggles (with bulk select), "stale" warnings for plugins unmaintained for a year+, changelog links.
+- **Tree view** — an explorer-style layout with folders derived from the active sort (download tiers, recency, A–Z, trending), a collapsed Stale folder, persistent expansion, and indent guides.
+- **Quick jump** — a fuzzy search command (`Better Store: Search plugins`) that opens any plugin's details from anywhere in Obsidian.
+- **"New" detection** — plugins that entered the registry in the last 14 days get a badge and a "New only" filter (togglable).
+- **Favorites** — star plugins to track them; a "Starred only" filter keeps your watchlist one click away.
+- **Update notifications** — a background check marks the ribbon icon (and optionally shows a notice) when installed plugins have updates.
+- **Release notes inline** — expand any release in the detail pane to read its changelog without leaving Obsidian.
+- **Compatibility warnings** — flags plugins whose `minAppVersion` exceeds your Obsidian version before you install.
+- **Keyboard navigation** — arrow keys move through cards and tree rows, Enter opens details, Esc closes the pane.
+- **Ignore rules** — hide individual plugins, everything by an author, or whole categories.
 
 ## Installation
 
@@ -48,6 +56,7 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 | Command | Action |
 | --- | --- |
 | `Better Store: Open store` | Opens (or reveals) the store tab |
+| `Better Store: Search plugins` | Fuzzy quick-jump to any plugin's details |
 
 ### Settings
 
@@ -57,7 +66,11 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 | Cache lifetime | 12 h | How long the plugin catalog is cached. Manual refresh in the store header. |
 | Default sort | Downloads | Downloads, recently updated, name, or trending. |
 | Hide installed by default | Off | Start browsing with installed plugins hidden. |
-| Ignored plugins | — | Review and un-ignore anything you've hidden. |
+| Show "New" badges | On | Highlight plugins that entered the registry in the last 14 days. |
+| Check for updates in the background | On | Checks installed plugins on the cache-lifetime cadence and marks the ribbon icon. |
+| Notify when updates are found | On | Shows a notice when the background check finds updates. |
+| Starred plugins | — | Review and unstar favorites. |
+| Ignored plugins / authors / categories | — | Review and remove any ignore rule. |
 
 ## How It Works
 

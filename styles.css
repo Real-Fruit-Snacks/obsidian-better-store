@@ -638,3 +638,167 @@
   color: var(--text-faint);
   font-style: italic;
 }
+
+/* Star buttons */
+.bs-star {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+}
+
+.bs-card:hover .bs-star,
+.bs-star-active,
+.bs-detail-header-actions .bs-star {
+  visibility: visible;
+}
+
+.bs-star:hover {
+  color: var(--text-normal);
+}
+
+.bs-star-active,
+.bs-star-active:hover {
+  color: var(--interactive-accent);
+}
+
+.bs-star-active svg {
+  fill: var(--interactive-accent);
+}
+
+.bs-detail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* New badge — outlined so it reads differently from the solid Installed badge */
+.bs-badge-new {
+  background: transparent;
+  color: var(--interactive-accent);
+  border: 1px solid var(--interactive-accent);
+}
+
+/* Ribbon update dot */
+.bs-ribbon-updates {
+  position: relative;
+}
+
+.bs-ribbon-updates::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--interactive-accent);
+}
+
+/* Compatibility warning */
+.bs-compat-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: var(--radius-s);
+  border: 1px solid color-mix(in srgb, var(--color-yellow, #e0ac00) 40%, var(--background-modifier-border));
+  border-left: 3px solid var(--color-yellow, #e0ac00);
+  background: color-mix(in srgb, var(--color-yellow, #e0ac00) 9%, transparent);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.bs-compat-warning .bs-icon {
+  color: var(--color-yellow, #e0ac00);
+}
+
+/* Release notes */
+.bs-release-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+.bs-release summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  padding: 2px 0;
+}
+
+.bs-release-date {
+  color: var(--text-faint);
+  margin-left: 8px;
+}
+
+.bs-release-notes {
+  border-left: 2px solid var(--background-modifier-border);
+  margin: 4px 0 8px 6px;
+  padding: 2px 0 2px 12px;
+  font-size: var(--font-ui-small);
+}
+
+.bs-release-notes :is(h1, h2, h3, h4) {
+  font-size: 1em;
+  margin: 6px 0 2px;
+}
+
+/* Bulk selection (Installed tab) */
+.bs-select {
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.bs-card:hover .bs-select,
+.bs-select:checked,
+.bs-select:focus-visible {
+  opacity: 1;
+}
+
+.bs-bulk-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bs-bulk-count {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.bs-bulk-btn {
+  font-size: var(--font-ui-small);
+  padding: 3px 10px;
+  border-radius: var(--radius-s);
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.bs-bulk-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.bs-bulk-clear {
+  background: var(--background-secondary);
+  color: var(--text-muted);
+  border: 1px solid var(--background-modifier-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-select {
+    transition: none;
+  }
+}

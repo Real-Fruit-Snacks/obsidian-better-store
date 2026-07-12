@@ -2,6 +2,7 @@ import type { PluginEntry } from "./types";
 import { mergeRegistry, parseRegistry, slimStats } from "./registry";
 import { classifyPlugin } from "./categories";
 import { appendSnapshot, computeDeltas, type Snapshot } from "./trending";
+import { newIdsWithin, updateKnownIds, type KnownIds } from "./newness";
 
 export const REGISTRY_URL =
   "https://raw.githubusercontent.com/obsidianmd/obsidian-releases/HEAD/community-plugins.json";
@@ -33,6 +34,8 @@ export interface Release {
   tag: string;
   publishedAt: string;
   url: string;
+  /** Release notes markdown body ("" when the author wrote none). */
+  body: string;
 }
 
 export interface Enrichment {
@@ -40,6 +43,8 @@ export interface Enrichment {
   openIssues: number;
   releases: Release[];
   latestVersion: string | null;
+  /** Minimum Obsidian version from the plugin's manifest, if declared. */
+  minAppVersion: string | null;
   fundingUrl: string | null;
 }
 
@@ -89,6 +94,7 @@ export class DataService {
       const catalog = { entries, fetchedAt: this.io.now() };
       await this.writeJson("catalog.json", catalog);
       await this.recordSnapshot(entries);
+      await this.recordKnownIds(entries);
       return { ...catalog, stale: false };
     } catch (e) {
       if (cached) return { ...cached, stale: true };
@@ -108,6 +114,23 @@ export class DataService {
 
   async getTrendingDeltas(): Promise<Record<string, number>> {
     return computeDeltas((await this.readJson<Snapshot[]>("history.json")) ?? []);
+  }
+
+  private async recordKnownIds(entries: PluginEntry[]): Promise<void> {
+    const known = await this.readJson<KnownIds>("known.json");
+    const next = updateKnownIds(
+      known != null && typeof known.firstSeen === "object" ? known : null,
+      entries.map((e) => e.id),
+      this.io.now()
+    );
+    await this.writeJson("known.json", next);
+  }
+
+  /** Ids of plugins that first appeared in the registry within the last N days. */
+  async getNewIds(days: number): Promise<Set<string>> {
+    const known = await this.readJson<KnownIds>("known.json");
+    if (known == null || typeof known.firstSeen !== "object") return new Set();
+    return newIdsWithin(known, days, this.io.now());
   }
 
   private githubHeaders(): Record<string, string> | undefined {
@@ -149,8 +172,9 @@ export class DataService {
       tag_name?: string;
       published_at?: string;
       html_url?: string;
+      body?: string;
     }[];
-    let manifest: { version?: string; fundingUrl?: string } = {};
+    let manifest: { version?: string; fundingUrl?: string; minAppVersion?: string } = {};
     if (manifestRaw != null) {
       try {
         manifest = JSON.parse(manifestRaw);
@@ -166,8 +190,10 @@ export class DataService {
         tag: r.tag_name ?? "",
         publishedAt: r.published_at ?? "",
         url: r.html_url ?? "",
+        body: typeof r.body === "string" ? r.body : "",
       })),
       latestVersion: typeof manifest.version === "string" ? manifest.version : null,
+      minAppVersion: typeof manifest.minAppVersion === "string" ? manifest.minAppVersion : null,
       fundingUrl:
         typeof manifest.fundingUrl === "string" && /^https?:\/\//i.test(manifest.fundingUrl)
           ? manifest.fundingUrl

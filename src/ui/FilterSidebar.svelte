@@ -87,6 +87,24 @@
     <span>Hide installed</span>
   </label>
 
+  <label class="bs-field bs-field-row">
+    <input
+      type="checkbox"
+      checked={filters.starredOnly}
+      onchange={(e) => onChange({ ...filters, starredOnly: e.currentTarget.checked })}
+    />
+    <span>Starred only</span>
+  </label>
+
+  <label class="bs-field bs-field-row">
+    <input
+      type="checkbox"
+      checked={filters.newOnly}
+      onchange={(e) => onChange({ ...filters, newOnly: e.currentTarget.checked })}
+    />
+    <span>New only</span>
+  </label>
+
   <div class="bs-field">
     <span class="bs-field-label">Categories</span>
     <div class="bs-cats">

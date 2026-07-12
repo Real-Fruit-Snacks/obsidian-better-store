@@ -11,11 +11,21 @@ export interface FilterState {
   updatedWithinMonths: number | null;
   minDownloads: number;
   hideInstalled: boolean;
+  /** Only plugins the user has starred. */
+  starredOnly: boolean;
+  /** Only plugins that recently appeared in the registry. */
+  newOnly: boolean;
 }
 
 export interface FilterContext {
   installedIds: Set<string>;
   ignoredIds: Set<string>;
+  /** Authors whose plugins are hidden entirely. */
+  ignoredAuthors: Set<string>;
+  /** Categories that hide a plugin when ANY of its categories matches. */
+  ignoredCategories: Set<string>;
+  favoriteIds: Set<string>;
+  newIds: Set<string>;
   trendingDeltas: Record<string, number>;
   now: number;
 }
@@ -27,6 +37,8 @@ export const EMPTY_FILTER: FilterState = {
   updatedWithinMonths: null,
   minDownloads: 0,
   hideInstalled: false,
+  starredOnly: false,
+  newOnly: false,
 };
 
 const MONTH_MS = 30 * 86_400_000;
@@ -37,6 +49,10 @@ export function filterPlugins(entries: PluginEntry[], state: FilterState, ctx: F
 
   const filtered = entries.filter((e) => {
     if (ctx.ignoredIds.has(e.id)) return false;
+    if (ctx.ignoredAuthors.has(e.author)) return false;
+    if (e.categories.some((c) => ctx.ignoredCategories.has(c))) return false;
+    if (state.starredOnly && !ctx.favoriteIds.has(e.id)) return false;
+    if (state.newOnly && !ctx.newIds.has(e.id)) return false;
     if (state.hideInstalled && ctx.installedIds.has(e.id)) return false;
     if (e.downloads < state.minDownloads) return false;
     if (cutoff != null && e.updated < cutoff) return false;

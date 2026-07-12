@@ -8,6 +8,12 @@ export interface BetterStoreSettings {
   defaultSort: SortKey;
   hideInstalledByDefault: boolean;
   ignoredPlugins: string[];
+  ignoredAuthors: string[];
+  ignoredCategories: string[];
+  favoritePlugins: string[];
+  showNewBadges: boolean;
+  backgroundUpdateCheck: boolean;
+  updateNotice: boolean;
 }
 
 export const DEFAULT_SETTINGS: BetterStoreSettings = {
@@ -16,11 +22,46 @@ export const DEFAULT_SETTINGS: BetterStoreSettings = {
   defaultSort: "downloads",
   hideInstalledByDefault: false,
   ignoredPlugins: [],
+  ignoredAuthors: [],
+  ignoredCategories: [],
+  favoritePlugins: [],
+  showNewBadges: true,
+  backgroundUpdateCheck: true,
+  updateNotice: true,
 };
+
+/** How recent a plugin's registry debut must be to earn the "New" badge. */
+export const NEW_WINDOW_DAYS = 14;
 
 export class BetterStoreSettingTab extends PluginSettingTab {
   constructor(app: App, private plugin: BetterStorePlugin) {
     super(app, plugin);
+  }
+
+  private removableList(
+    containerEl: HTMLElement,
+    heading: string,
+    emptyText: string,
+    items: string[],
+    remove: (item: string) => void
+  ): void {
+    new Setting(containerEl).setName(heading).setHeading();
+    if (items.length === 0) {
+      containerEl.createEl("p", { text: emptyText, cls: "setting-item-description" });
+      return;
+    }
+    for (const item of [...items]) {
+      new Setting(containerEl).setName(item).addExtraButton((btn) =>
+        btn
+          .setIcon("x")
+          .setTooltip("Remove")
+          .onClick(async () => {
+            remove(item);
+            await this.plugin.saveSettings();
+            this.display();
+          })
+      );
+    }
   }
 
   display(): void {
@@ -78,24 +119,76 @@ export class BetterStoreSettingTab extends PluginSettingTab {
         })
       );
 
-    new Setting(containerEl).setName("Ignored plugins").setHeading();
-    if (this.plugin.settings.ignoredPlugins.length === 0) {
-      containerEl.createEl("p", {
-        text: "No ignored plugins. Use the ignore action on a plugin card to hide it from browsing.",
-        cls: "setting-item-description",
-      });
-    }
-    for (const id of [...this.plugin.settings.ignoredPlugins]) {
-      new Setting(containerEl).setName(id).addExtraButton((btn) =>
-        btn
-          .setIcon("x")
-          .setTooltip("Stop ignoring")
-          .onClick(async () => {
-            this.plugin.settings.ignoredPlugins = this.plugin.settings.ignoredPlugins.filter((p) => p !== id);
-            await this.plugin.saveSettings();
-            this.display();
-          })
+    new Setting(containerEl)
+      .setName(`Show "New" badges`)
+      .setDesc(`Highlight plugins that entered the registry within the last ${NEW_WINDOW_DAYS} days.`)
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.showNewBadges).onChange(async (value) => {
+          this.plugin.settings.showNewBadges = value;
+          await this.plugin.saveSettings();
+        })
       );
-    }
+
+    new Setting(containerEl).setName("Updates").setHeading();
+
+    new Setting(containerEl)
+      .setName("Check for updates in the background")
+      .setDesc("Checks your installed plugins against their repositories on the cache-lifetime cadence and marks the ribbon icon when updates are available.")
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.backgroundUpdateCheck).onChange(async (value) => {
+          this.plugin.settings.backgroundUpdateCheck = value;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Notify when updates are found")
+      .setDesc("Shows a notice when the background check finds plugin updates.")
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.updateNotice).onChange(async (value) => {
+          this.plugin.settings.updateNotice = value;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    this.removableList(
+      containerEl,
+      "Starred plugins",
+      "No starred plugins. Use the star action on a plugin card or detail view.",
+      this.plugin.settings.favoritePlugins,
+      (id) => {
+        this.plugin.settings.favoritePlugins = this.plugin.settings.favoritePlugins.filter((p) => p !== id);
+      }
+    );
+
+    this.removableList(
+      containerEl,
+      "Ignored plugins",
+      "No ignored plugins. Use the ignore action on a plugin card to hide it from browsing.",
+      this.plugin.settings.ignoredPlugins,
+      (id) => {
+        this.plugin.settings.ignoredPlugins = this.plugin.settings.ignoredPlugins.filter((p) => p !== id);
+      }
+    );
+
+    this.removableList(
+      containerEl,
+      "Ignored authors",
+      "No ignored authors. Use a plugin card's ignore menu to hide everything by an author.",
+      this.plugin.settings.ignoredAuthors,
+      (author) => {
+        this.plugin.settings.ignoredAuthors = this.plugin.settings.ignoredAuthors.filter((a) => a !== author);
+      }
+    );
+
+    this.removableList(
+      containerEl,
+      "Ignored categories",
+      "No ignored categories. Use a plugin card's ignore menu to hide a whole category.",
+      this.plugin.settings.ignoredCategories,
+      (cat) => {
+        this.plugin.settings.ignoredCategories = this.plugin.settings.ignoredCategories.filter((c) => c !== cat);
+      }
+    );
   }
 }

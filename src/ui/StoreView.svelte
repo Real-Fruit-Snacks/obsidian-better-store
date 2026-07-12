@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { Menu } from "obsidian";
   import type BetterStorePlugin from "../main";
   import type { BetterStoreView } from "../view";
   import type { PluginEntry } from "../data/types";
   import { EMPTY_FILTER, filterPlugins, type FilterState, type SortKey } from "../data/filter";
   import { getInstalledIds, type TabId } from "./store-context";
+  import { NEW_WINDOW_DAYS } from "../settings";
   import FilterSidebar from "./FilterSidebar.svelte";
   import PluginCard from "./PluginCard.svelte";
   import DetailPane from "./DetailPane.svelte";
@@ -22,7 +24,10 @@
   let tab = $state<TabId>("all");
   let trendingDeltas = $state<Record<string, number>>({});
   let installedIds = $state<Set<string>>(new Set());
+  let newIds = $state<Set<string>>(new Set());
   let selected = $state<PluginEntry | null>(null);
+  /** Bumped whenever settings save so derived sets re-read plugin.settings. */
+  let settingsTick = $state(0);
 
   let filters = $state<FilterState>({
     ...EMPTY_FILTER,
@@ -50,14 +55,29 @@
     sort: requestedSort === "trending" && !trendingReady ? "downloads" : requestedSort,
   });
 
-  let visible = $derived(
-    filterPlugins(entries, effectiveFilters, {
+  let favoriteIds = $derived.by(() => {
+    void settingsTick;
+    return new Set(plugin.settings.favoritePlugins);
+  });
+
+  let showNewBadges = $derived.by(() => {
+    void settingsTick;
+    return plugin.settings.showNewBadges;
+  });
+
+  let visible = $derived.by(() => {
+    void settingsTick;
+    return filterPlugins(entries, effectiveFilters, {
       installedIds,
       ignoredIds: new Set(plugin.settings.ignoredPlugins),
+      ignoredAuthors: new Set(plugin.settings.ignoredAuthors),
+      ignoredCategories: new Set(plugin.settings.ignoredCategories),
+      favoriteIds,
+      newIds,
       trendingDeltas,
       now: Date.now(),
-    })
-  );
+    });
+  });
 
   // Incremental rendering: keeping thousands of cards in the DOM makes tab
   // switches and filter changes take seconds (keyed reorder of every node).
@@ -93,6 +113,37 @@
     return { destroy: () => observer.disconnect() };
   }
 
+  /** Arrow-key roving focus across the card grid. */
+  function gridNav(node: HTMLElement) {
+    const handler = (e: KeyboardEvent) => {
+      if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
+      const cards = Array.from(node.querySelectorAll<HTMLElement>(".bs-card"));
+      const idx = cards.indexOf(document.activeElement as HTMLElement);
+      if (idx === -1) return;
+      e.preventDefault();
+      let target: HTMLElement | undefined;
+      if (e.key === "ArrowLeft") target = cards[idx - 1];
+      else if (e.key === "ArrowRight") target = cards[idx + 1];
+      else {
+        const rect = cards[idx].getBoundingClientRect();
+        const down = e.key === "ArrowDown";
+        let bestScore = Infinity;
+        for (const card of cards) {
+          const r = card.getBoundingClientRect();
+          if (down ? r.top <= rect.top + 1 : r.top >= rect.top - 1) continue;
+          const score = Math.abs(r.top - rect.top) * 10_000 + Math.abs(r.left - rect.left);
+          if (score < bestScore) {
+            bestScore = score;
+            target = card;
+          }
+        }
+      }
+      target?.focus();
+    };
+    node.addEventListener("keydown", handler);
+    return { destroy: () => node.removeEventListener("keydown", handler) };
+  }
+
   async function load(force = false): Promise<void> {
     loading = true;
     error = null;
@@ -101,20 +152,72 @@
       entries = catalog.entries;
       stale = catalog.stale;
       trendingDeltas = await plugin.service.getTrendingDeltas();
+      newIds = await plugin.service.getNewIds(NEW_WINDOW_DAYS);
       installedIds = getInstalledIds(plugin.app);
     } catch (e) {
       error = e instanceof Error ? e.message : String(e);
     } finally {
       loading = false;
+      if (plugin.pendingDetailId) showDetail(plugin.pendingDetailId);
     }
   }
 
-  async function ignorePlugin(id: string): Promise<void> {
-    if (!plugin.settings.ignoredPlugins.includes(id)) {
-      plugin.settings.ignoredPlugins = [...plugin.settings.ignoredPlugins, id];
-      await plugin.saveSettings();
+  /** Quick-jump / external requests to open a plugin's detail pane. */
+  function showDetail(id: string): void {
+    const entry = entries.find((e) => e.id === id);
+    if (!entry) return;
+    plugin.pendingDetailId = null;
+    selected = entry;
+  }
+
+  function openIgnoreMenu(e: MouseEvent, entry: PluginEntry): void {
+    const menu = new Menu();
+    menu.addItem((item) =>
+      item
+        .setTitle(`Ignore "${entry.name}"`)
+        .setIcon("x")
+        .onClick(async () => {
+          if (!plugin.settings.ignoredPlugins.includes(entry.id)) {
+            plugin.settings.ignoredPlugins = [...plugin.settings.ignoredPlugins, entry.id];
+            await plugin.saveSettings();
+          }
+          if (selected?.id === entry.id) selected = null;
+        })
+    );
+    menu.addItem((item) =>
+      item
+        .setTitle(`Ignore author "${entry.author}"`)
+        .setIcon("user-x")
+        .onClick(async () => {
+          if (!plugin.settings.ignoredAuthors.includes(entry.author)) {
+            plugin.settings.ignoredAuthors = [...plugin.settings.ignoredAuthors, entry.author];
+            await plugin.saveSettings();
+          }
+          if (selected?.author === entry.author) selected = null;
+        })
+    );
+    for (const cat of entry.categories) {
+      menu.addItem((item) =>
+        item
+          .setTitle(`Ignore category "${cat}"`)
+          .setIcon("tag")
+          .onClick(async () => {
+            if (!plugin.settings.ignoredCategories.includes(cat)) {
+              plugin.settings.ignoredCategories = [...plugin.settings.ignoredCategories, cat];
+              await plugin.saveSettings();
+            }
+            if (selected?.categories.includes(cat)) selected = null;
+          })
+      );
     }
-    if (selected?.id === id) selected = null;
+    menu.showAtMouseEvent(e);
+  }
+
+  async function toggleFavorite(id: string): Promise<void> {
+    plugin.settings.favoritePlugins = plugin.settings.favoritePlugins.includes(id)
+      ? plugin.settings.favoritePlugins.filter((f) => f !== id)
+      : [...plugin.settings.favoritePlugins, id];
+    await plugin.saveSettings();
   }
 
   let lastHideInstalledDefault = plugin.settings.hideInstalledByDefault;
@@ -130,17 +233,26 @@
         installedIds = fresh;
       }
     }, 2000);
-    const unsubscribe = plugin.registerSettingsListener(() => {
+    const unsubscribeSettings = plugin.registerSettingsListener(() => {
       if (plugin.settings.hideInstalledByDefault !== lastHideInstalledDefault) {
         lastHideInstalledDefault = plugin.settings.hideInstalledByDefault;
         filters = { ...filters, hideInstalled: plugin.settings.hideInstalledByDefault };
       }
-      // Re-render for ignore-list changes; catalog itself is unaffected.
-      entries = [...entries];
+      settingsTick += 1;
     });
+    const unsubscribeDetail = plugin.registerDetailListener((id) => showDetail(id));
+    const onEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selected) {
+        selected = null;
+        e.stopPropagation();
+      }
+    };
+    view.contentEl.addEventListener("keydown", onEscape);
     return () => {
       window.clearInterval(installedPoll);
-      unsubscribe();
+      unsubscribeSettings();
+      unsubscribeDetail();
+      view.contentEl.removeEventListener("keydown", onEscape);
     };
   });
 </script>
@@ -199,6 +311,8 @@
           {view}
           entry={selected}
           installed={installedIds.has(selected.id)}
+          starred={favoriteIds.has(selected.id)}
+          onToggleStar={() => void toggleFavorite(selected!.id)}
           onClose={() => (selected = null)}
         />
       {/if}
@@ -219,14 +333,17 @@
             />
           {/key}
         {:else}
-          <div class="bs-grid">
+          <div class="bs-grid" use:gridNav>
             {#each shown as entry (entry.id)}
               <PluginCard
                 {entry}
                 installed={installedIds.has(entry.id)}
                 selected={selected?.id === entry.id}
+                starred={favoriteIds.has(entry.id)}
+                isNew={showNewBadges && newIds.has(entry.id)}
                 onSelect={() => (selected = entry)}
-                onIgnore={() => void ignorePlugin(entry.id)}
+                onToggleStar={() => void toggleFavorite(entry.id)}
+                onIgnore={(e) => openIgnoreMenu(e, entry)}
               />
             {/each}
           </div>
@@ -243,6 +360,8 @@
           {view}
           entry={selected}
           installed={installedIds.has(selected.id)}
+          starred={favoriteIds.has(selected.id)}
+          onToggleStar={() => void toggleFavorite(selected!.id)}
           onClose={() => (selected = null)}
         />
       {/if}
