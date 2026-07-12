@@ -42,8 +42,11 @@ export default class BetterStorePlugin extends Plugin {
     });
   }
 
-  registerSettingsListener(cb: () => void): void {
+  registerSettingsListener(cb: () => void): () => void {
     this.settingsListeners.push(cb);
+    return () => {
+      this.settingsListeners = this.settingsListeners.filter((c) => c !== cb);
+    };
   }
 
   async loadSettings(): Promise<void> {

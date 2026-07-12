@@ -63,7 +63,7 @@
 
   onMount(() => {
     void load();
-    plugin.registerSettingsListener(() => {
+    return plugin.registerSettingsListener(() => {
       filters = { ...filters, hideInstalled: plugin.settings.hideInstalledByDefault };
       // Re-render for ignore-list changes; catalog itself is unaffected.
       entries = [...entries];
