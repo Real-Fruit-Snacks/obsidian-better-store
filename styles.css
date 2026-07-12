@@ -614,6 +614,23 @@
   color: var(--text-faint);
 }
 
+/* Installed plugins: tint the leading plugin icon (not the download icon). */
+.bs-tree-item-installed > .bs-icon {
+  color: var(--interactive-accent);
+}
+
+.bs-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .bs-tree-name {
   flex: 1;
   min-width: 0;

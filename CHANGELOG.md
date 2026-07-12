@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.20] - 2026-07-12
+
+### Changed
+- In the tree view, installed plugins are now shown by tinting their plugin icon with the accent colour instead of an "Installed" text badge — cleaner in the dense list. The status stays accessible via a hover tooltip and a screen-reader label.
+
 ## [0.3.19] - 2026-07-12
 
 ### Fixed
@@ -245,6 +250,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.20]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.20
 [0.3.19]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.19
 [0.3.18]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.18
 [0.3.17]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.17

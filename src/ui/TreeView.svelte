@@ -117,17 +117,19 @@
       <div
         class="bs-tree-item"
         class:bs-tree-item-selected={selected?.id === entry.id}
+        class:bs-tree-item-installed={installedIds.has(entry.id)}
         style={`--bs-depth:${depth + 1}`}
         data-depth={depth + 1}
         data-row
         role="button"
         tabindex="0"
+        title={installedIds.has(entry.id) ? `${entry.name} (installed)` : entry.name}
         onclick={() => onSelect(entry)}
         onkeydown={(e) => activate(e, () => onSelect(entry))}
       >
         <Icon name="puzzle" />
         <span class="bs-tree-name">{entry.name}</span>
-        {#if installedIds.has(entry.id)}<span class="bs-badge bs-badge-installed">Installed</span>{/if}
+        {#if installedIds.has(entry.id)}<span class="bs-sr-only">installed</span>{/if}
         <span class="bs-tree-meta"><Icon name="download" />{formatCount(entry.downloads)}</span>
       </div>
     {/each}
