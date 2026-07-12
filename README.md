@@ -75,7 +75,7 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| GitHub token | — | Optional. Raises the GitHub API rate limit (60/hr without) used for stars, issues, and releases. A classic token with **no scopes** is enough. Stored in **Obsidian's secret storage**, not in plugin data — it doesn't travel with `data.json` backups or sync. A **Test** button verifies the token against the GitHub API and reports your remaining rate limit. |
+| GitHub token | — | Optional. Link a secret from **Obsidian's secret storage** holding a GitHub personal access token — it raises the API rate limit (60/hr without) used for stars, issues, and releases. A classic token with **no scopes** is enough. Only the secret's *name* is stored in plugin data; the token itself never leaves secret storage. A **Test** button verifies the linked token against the GitHub API and reports your remaining rate limit. |
 | Cache lifetime | 12 h | How long the plugin catalog is cached. Manual refresh in the store header. |
 | Default sort | Downloads | Downloads, recently updated, name, or trending. |
 | Open the store in | Tab | Tab, split, or a new window (desktop-only; falls back to a tab on mobile). |
@@ -130,7 +130,7 @@ src/
 
 - **Network** — requests go only to the official `obsidianmd/obsidian-releases` registry, `raw.githubusercontent.com`, and `api.github.com`. No telemetry, no third-party services.
 - **Clipboard** — write-only, and only when you click a copy/export action. The plugin never reads your clipboard.
-- **Storage** — settings and UI state live in Obsidian's plugin data (`data.json`); caches live in the plugin's own folder; the optional GitHub token lives in Obsidian's secret storage, never in plugin data.
+- **Storage** — settings and UI state live in Obsidian's plugin data (`data.json`); caches live in the plugin's own folder; the optional GitHub token lives in Obsidian's secret storage — plugin data records only the linked secret's name, never the token.
 
 ## Self-hosting
 

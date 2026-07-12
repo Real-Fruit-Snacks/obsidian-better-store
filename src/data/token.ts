@@ -1,3 +1,22 @@
+/**
+ * Repair the secret state left behind by 0.3.2–0.3.7, which wrote the *name*
+ * of the secret the user linked into the plugin's own secret as if it were
+ * the token. Returns which secret id the settings should link to, and whether
+ * the plugin's legacy secret holds junk that should be scrubbed.
+ */
+export function resolveLegacySecret(
+  legacyValue: string | null,
+  legacyId: string,
+  existingIds: string[]
+): { secretId: string; scrubLegacy: boolean } {
+  if (!legacyValue) return { secretId: "", scrubLegacy: false };
+  if (legacyValue === legacyId) return { secretId: "", scrubLegacy: true };
+  // A secret name written by the bug matches an existing secret; a real
+  // token (ghp_…, github_pat_…) can never be a valid secret id.
+  if (existingIds.includes(legacyValue)) return { secretId: legacyValue, scrubLegacy: true };
+  return { secretId: legacyId, scrubLegacy: false };
+}
+
 /** Interpret a GitHub `/rate_limit` response as a human-readable token check. */
 export function summarizeTokenCheck(hasToken: boolean, status: number, body: string): string {
   if (status === 401) return "GitHub token is invalid or expired.";

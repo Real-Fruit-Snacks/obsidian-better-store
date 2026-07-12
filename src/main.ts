@@ -1,7 +1,7 @@
 import { Notice, Platform, Plugin, requestUrl } from "obsidian";
 import { DataService, type ServiceIO } from "./data/service";
 import { compareVersions } from "./data/versions";
-import { summarizeTokenCheck } from "./data/token";
+import { resolveLegacySecret, summarizeTokenCheck } from "./data/token";
 import { buildExportList, exportJson, exportMarkdown } from "./data/portability";
 import { diffProfile, type PluginProfile } from "./data/profiles";
 import { BetterStoreSettingTab, DEFAULT_SETTINGS, type BetterStoreSettings } from "./settings";
@@ -189,12 +189,26 @@ export default class BetterStorePlugin extends Plugin {
     });
   }
 
+  /** Resolve the GitHub token from the secret the user linked in settings. */
   getGithubToken(): string {
-    return this.app.secretStorage.getSecret(GITHUB_TOKEN_SECRET) ?? "";
+    const id = this.settings.githubSecretId;
+    return id ? this.app.secretStorage.getSecret(id) ?? "" : "";
   }
 
-  /** Check the stored token against the GitHub API and report the result in a notice. */
+  /** Store which secret holds the GitHub token and refresh the service. */
+  async setGithubSecretId(id: string): Promise<void> {
+    this.settings.githubSecretId = id;
+    await this.saveSettings();
+    this.service = this.createService();
+  }
+
+  /** Check the linked token against the GitHub API and report the result in a notice. */
   async testGithubToken(): Promise<void> {
+    const id = this.settings.githubSecretId;
+    if (id && this.app.secretStorage.getSecret(id) == null) {
+      new Notice(`The linked secret "${id}" no longer exists — link another one.`);
+      return;
+    }
     const token = this.getGithubToken();
     try {
       // /rate_limit is free — it never counts against the quota.
@@ -207,12 +221,6 @@ export default class BetterStorePlugin extends Plugin {
     } catch {
       new Notice("Could not reach the GitHub API — check your connection.");
     }
-  }
-
-  /** Store the token in Obsidian's secret storage and refresh the service. */
-  setGithubToken(token: string): void {
-    this.app.secretStorage.setSecret(GITHUB_TOKEN_SECRET, token);
-    this.service = this.createService();
   }
 
   registerSettingsListener(cb: () => void): () => void {
@@ -231,9 +239,25 @@ export default class BetterStorePlugin extends Plugin {
     if (typeof raw.githubToken === "string") {
       if (raw.githubToken && !this.app.secretStorage.getSecret(GITHUB_TOKEN_SECRET)) {
         this.app.secretStorage.setSecret(GITHUB_TOKEN_SECRET, raw.githubToken);
+        this.settings.githubSecretId = GITHUB_TOKEN_SECRET;
       }
       delete (this.settings as unknown as Record<string, unknown>).githubToken;
       await this.saveData(this.settings);
+    }
+    // 0.3.2–0.3.7 misread the settings' secret input and wrote the *name* of
+    // the secret the user linked into the plugin's own secret as if it were
+    // the token. Point the setting at the right secret and scrub the junk.
+    if (!this.settings.githubSecretId) {
+      const resolved = resolveLegacySecret(
+        this.app.secretStorage.getSecret(GITHUB_TOKEN_SECRET),
+        GITHUB_TOKEN_SECRET,
+        this.app.secretStorage.listSecrets()
+      );
+      if (resolved.secretId || resolved.scrubLegacy) {
+        this.settings.githubSecretId = resolved.secretId;
+        if (resolved.scrubLegacy) this.app.secretStorage.setSecret(GITHUB_TOKEN_SECRET, "");
+        await this.saveData(this.settings);
+      }
     }
   }
 

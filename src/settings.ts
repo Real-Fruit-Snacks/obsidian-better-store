@@ -18,6 +18,8 @@ export interface FilterPreset {
 }
 
 export interface BetterStoreSettings {
+  /** Name of the secret (in Obsidian's secret storage) holding the GitHub token. */
+  githubSecretId: string;
   cacheTtlHours: number;
   defaultSort: SortKey;
   openLocation: "tab" | "split" | "window";
@@ -39,6 +41,7 @@ export interface BetterStoreSettings {
 }
 
 export const DEFAULT_SETTINGS: BetterStoreSettings = {
+  githubSecretId: "",
   cacheTtlHours: 12,
   defaultSort: "downloads",
   openLocation: "tab",
@@ -98,35 +101,21 @@ export class BetterStoreSettingTab extends PluginSettingTab {
     return [
       {
         name: "GitHub token",
-        desc: "Optional. Raises the GitHub API rate limit (60/hour without a token) used for stars, issues, and release data. A classic token with no scopes is enough. Stored in Obsidian's secret storage, not in plugin data.",
+        desc: "Optional. Link a secret holding a GitHub personal access token — it raises the API rate limit (60/hour without) used for stars, issues, and release data. A classic token with no scopes is enough. Only the secret's name is stored in plugin data; the token stays in Obsidian's secret storage.",
         render: (setting: Setting) => {
-          let timer: number | null = null;
-          let pending: string | null = null;
-          const flush = () => {
-            if (timer != null) window.clearTimeout(timer);
-            timer = null;
-            if (pending != null) {
-              this.plugin.setGithubToken(pending);
-              pending = null;
-            }
-          };
           setting.addComponent((el) => {
             const secret = new SecretComponent(this.app, el);
-            secret.setValue(this.plugin.getGithubToken());
-            secret.onChange((value) => {
-              // SecretComponent reports a cleared/unset secret as null.
-              pending = (value ?? "").trim();
-              if (timer != null) window.clearTimeout(timer);
-              timer = window.setTimeout(flush, 600);
-            });
+            // The component links a named secret: its value is the secret's
+            // name, not the token itself (null when nothing is linked).
+            secret.setValue(this.plugin.settings.githubSecretId);
+            secret.onChange((id) => void this.plugin.setGithubSecretId((id ?? "").trim()));
             return secret;
           });
           setting.addButton((btn) =>
             btn
               .setButtonText("Test")
-              .setTooltip("Verify the token against the GitHub API")
+              .setTooltip("Verify the linked token against the GitHub API")
               .onClick(async () => {
-                flush(); // a just-typed token may still be waiting on the save debounce
                 btn.setDisabled(true).setButtonText("Testing…");
                 try {
                   await this.plugin.testGithubToken();

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { summarizeTokenCheck } from "../src/data/token";
+import { resolveLegacySecret, summarizeTokenCheck } from "../src/data/token";
 
 const body = (limit: number, remaining: number): string =>
   JSON.stringify({ resources: { core: { limit, remaining } } });
@@ -37,5 +37,39 @@ describe("summarizeTokenCheck", () => {
   it("handles an unreadable body without throwing", () => {
     expect(summarizeTokenCheck(true, 200, "not json")).toContain("could not be read");
     expect(summarizeTokenCheck(true, 200, "{}")).toContain("could not be read");
+  });
+});
+
+describe("resolveLegacySecret", () => {
+  const LEGACY = "better-store-github-token";
+
+  it("does nothing when the legacy secret is missing or empty", () => {
+    expect(resolveLegacySecret(null, LEGACY, ["betterstore"])).toEqual({ secretId: "", scrubLegacy: false });
+    expect(resolveLegacySecret("", LEGACY, ["betterstore"])).toEqual({ secretId: "", scrubLegacy: false });
+  });
+
+  it("re-links to the named secret when the bug stored a secret name as the token", () => {
+    expect(resolveLegacySecret("betterstore", LEGACY, [LEGACY, "betterstore"])).toEqual({
+      secretId: "betterstore",
+      scrubLegacy: true,
+    });
+  });
+
+  it("unlinks a self-referential legacy secret", () => {
+    expect(resolveLegacySecret(LEGACY, LEGACY, [LEGACY])).toEqual({ secretId: "", scrubLegacy: true });
+  });
+
+  it("keeps a real migrated token in the legacy secret", () => {
+    expect(resolveLegacySecret("ghp_abc123XYZ", LEGACY, [LEGACY, "betterstore"])).toEqual({
+      secretId: LEGACY,
+      scrubLegacy: false,
+    });
+  });
+
+  it("treats a value that only looks like an id but matches no secret as a real token", () => {
+    expect(resolveLegacySecret("some-old-token", LEGACY, [LEGACY])).toEqual({
+      secretId: LEGACY,
+      scrubLegacy: false,
+    });
   });
 });

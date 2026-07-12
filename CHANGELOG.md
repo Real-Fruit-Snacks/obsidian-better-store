@@ -4,6 +4,13 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.8] - 2026-07-12
+
+### Fixed
+- The GitHub token setting now uses Obsidian's secret input the way it's designed: you **link a named secret** from Obsidian's secret storage, and the plugin stores only that name — resolving the token when it's needed. Previous versions mistook the linked secret's name for the token itself, which broke GitHub authentication (and the Test button reported "invalid") and created a stray `better-store-github-token` secret holding the name as text.
+- Existing setups migrate automatically: a linked-name mixup is re-pointed at the right secret (the stray entry is emptied — feel free to delete it from Settings → Secrets), and a real token migrated from pre-0.3.2 plugin data keeps working where it is.
+- The Test button now says when the linked secret no longer exists instead of reporting an anonymous rate limit.
+
 ## [0.3.7] - 2026-07-12
 
 ### Fixed
@@ -168,6 +175,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.8]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.8
 [0.3.7]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.7
 [0.3.6]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.6
 [0.3.5]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.5
