@@ -163,7 +163,7 @@ footer {
   <section id="features">
     <span class="manifest">// Features</span>
     <div class="grid">
-      <div class="panel"><span class="manifest">Full workspace tab</span><p>Browse in a real tab with a filter sidebar, card grid, and detail pane — not a cramped modal.</p></div>
+      <div class="panel"><span class="manifest">Full workspace view</span><p>A filter sidebar, card grid, and detail pane — in a tab, a split, or its own window. Not a cramped modal.</p></div>
       <div class="panel"><span class="manifest">Filters &amp; sorting</span><p>Search, heuristic categories, updated-within, minimum downloads, hide installed; sort by downloads, recency, name, or trending.</p></div>
       <div class="panel"><span class="manifest">Rich details</span><p>Rendered README with images, GitHub stars and open issues, recent releases, and funding links — fetched lazily, cached locally.</p></div>
       <div class="panel"><span class="manifest">Trending</span><p>Local download-delta tracking that builds up as you use the plugin. No external service, no telemetry.</p></div>
@@ -199,6 +199,7 @@ footer {
         <tr><td>GitHub token</td><td>Optional. Raises the GitHub API rate limit for stars/issues/releases data. A classic token with no scopes is enough. Stored in Obsidian's secret storage — never in plugin data, so it doesn't travel with vault sync or backups.</td></tr>
         <tr><td>Cache lifetime</td><td>How long the plugin catalog is cached (default 12 h). Manual refresh in the store header.</td></tr>
         <tr><td>Default sort</td><td>Downloads, recently updated, name, or trending.</td></tr>
+        <tr><td>Open the store in</td><td>A tab, a split, or a new window (desktop-only; falls back to a tab on mobile).</td></tr>
         <tr><td>Hide installed</td><td>Start with already-installed plugins hidden.</td></tr>
         <tr><td>Show "New" badges</td><td>Highlight plugins that entered the registry within the last 14 days.</td></tr>
         <tr><td>Track recently viewed</td><td>Ranks plugins you've opened recently first in quick-jump search.</td></tr>

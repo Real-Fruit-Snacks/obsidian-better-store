@@ -8,7 +8,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/Real-Fruit-Snacks/obsidian-better-store/ci.yml?style=flat-square&label=CI)](https://github.com/Real-Fruit-Snacks/obsidian-better-store/actions/workflows/ci.yml)
 [![Downloads](https://img.shields.io/badge/dynamic/json?style=flat-square&color=63f2ab&label=downloads&query=%24%5B%22better-store%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)](https://community.obsidian.md/plugins/better-store)
 
-**[Documentation site](https://real-fruit-snacks.github.io/obsidian-better-store/)** · **[Latest release](https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/latest)**
+**[Documentation site](https://real-fruit-snacks.github.io/obsidian-better-store/)** · **[Latest release](https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/latest)** · **[Changelog](CHANGELOG.md)**
 
 </div>
 
@@ -20,7 +20,7 @@ It deliberately does **not** install, update, or remove plugin files itself — 
 
 ## Features
 
-- **Full workspace tab** — a filter sidebar, card grid, and detail pane instead of a cramped modal. Stays open while you work.
+- **Full workspace view** — a filter sidebar, card grid, and detail pane instead of a cramped modal; opens in a tab, a split, or its own window. Stays open while you work.
 - **Filters & sorting** — search across name/author/description, category chips, "updated within", minimum downloads, hide installed; sort by downloads, recency, name, or trending.
 - **Heuristic categories** — Tasks, Sync & Backup, AI, Appearance, Editor, Export & Import, Calendar & Time, Data & Queries, Files & Organization, Publishing & Sharing, Integrations. The official registry has no categories, so these are keyword-derived — imperfect by design and easy to refine.
 - **Rich details** — rendered README with images (sanitized), GitHub stars and open issues, recent releases, and funding links, fetched lazily and cached.
@@ -65,7 +65,7 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 
 | Command | Action |
 | --- | --- |
-| `Better Store: Open store` | Opens (or reveals) the store tab |
+| `Better Store: Open store` | Opens (or reveals) the store — in a tab, split, or window per your setting |
 | `Better Store: Search plugins` | Fuzzy quick-jump to any plugin's details (recently viewed rank first) |
 | `Better Store: Apply plugin profile` | Switch to a saved enable-set |
 | `Better Store: Export plugin list (Markdown / JSON)` | Copies your installed list to the clipboard |
@@ -101,20 +101,28 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 
 ```
 src/
-├── main.ts              plugin entry: settings, service wiring, view registration
+├── main.ts              plugin entry: commands, service wiring, update checks
 ├── view.ts              ItemView hosting the Svelte root
-├── settings.ts          settings tab
+├── settings.ts          declarative settings tab
 ├── data/                pure, fully unit-tested modules (no Obsidian imports)
 │   ├── registry.ts      registry parsing + stats slimming
 │   ├── categories.ts    keyword → category heuristics
 │   ├── filter.ts        filter/sort engine
-│   ├── trending.ts      download-delta snapshots
+│   ├── tree.ts          sort-derived folder grouping
+│   ├── trending.ts      download-delta snapshots + history
+│   ├── newness.ts       new-plugin detection
 │   ├── service.ts       fetch + cache orchestration (IO injected)
 │   ├── installed.ts     installed-plugin status
+│   ├── profiles.ts      enable-set diffing
+│   ├── portability.ts   export/import of plugin lists
+│   ├── health.ts        maintenance assessment
+│   ├── similar.ts       related-plugin scoring
 │   └── ...              versions, readme URL rewriting, formatting
 └── ui/                  Svelte 5 components
     ├── StoreView.svelte tabs, state, wiring
     ├── FilterSidebar / PluginCard / DetailPane / InstalledTab
+    ├── TreeView / Sparkline / Icon
+    ├── QuickJumpModal / modals (name prompt, import, profiles)
     └── store-context.ts typed access to Obsidian internals
 ```
 
@@ -132,10 +140,11 @@ The repository ships a `.gitlab-ci.yml`, so the project can also be hosted and b
 
 ```bash
 npm install
-npm run dev     # watch build
-npm run check   # type check
-npm test        # unit tests (47)
-npm run build   # production build
+npm run dev            # watch build
+npm run check          # TypeScript type check
+npm run check:svelte   # Svelte component type check
+npm test               # unit tests (83)
+npm run build          # production build + bundle verification
 ```
 
 Junction/symlink the repo into a test vault's `.obsidian/plugins/better-store` and enable it.
