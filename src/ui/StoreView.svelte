@@ -51,6 +51,13 @@
 
   let trendingReady = $derived(Object.keys(trendingDeltas).length > 0);
 
+  // Reactive token presence (tokenTick bumps when a token is linked/unlinked).
+  let hasToken = $derived.by(() => {
+    void tokenTick;
+    void settingsTick;
+    return plugin.service.hasGithubToken();
+  });
+
   let requestedSort = $derived<SortKey>(tab === "trending" ? "trending" : filters.sort);
 
   // Without snapshot history all trending deltas are zero, which would yield
@@ -400,7 +407,10 @@
         {:else}
           <button
             class="bs-refresh"
-            title="Fetch GitHub stars & open issues for the whole catalog (needs a token) so you can sort by them"
+            title={hasToken
+              ? "Fetch GitHub stars & open issues for the whole catalog so you can sort by them"
+              : "Link a GitHub token in settings to scan the catalog (the 60/hour anonymous limit is too low)"}
+            disabled={!hasToken}
             onclick={startScan}
           >
             <Icon name="github" />Scan GitHub

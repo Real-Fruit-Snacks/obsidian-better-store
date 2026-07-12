@@ -57,6 +57,11 @@
   cursor: pointer;
 }
 
+.bs-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .bs-banner {
   padding: 6px 12px;
   background: var(--background-modifier-error-hover, var(--background-secondary));

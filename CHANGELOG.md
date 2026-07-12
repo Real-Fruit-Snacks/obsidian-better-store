@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.16] - 2026-07-12
+
+### Changed
+- The **Scan GitHub** button is now disabled (greyed out) when no token is linked, with a tooltip explaining that a token is required — instead of being clickable and only telling you after the click. It re-enables the moment a token is linked.
+
 ## [0.3.15] - 2026-07-12
 
 ### Added
@@ -219,6 +224,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.16]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.16
 [0.3.15]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.15
 [0.3.14]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.14
 [0.3.13]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.13
