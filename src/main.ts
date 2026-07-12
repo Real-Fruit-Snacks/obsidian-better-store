@@ -37,7 +37,7 @@ export default class BetterStorePlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    this.settings = { ...DEFAULT_SETTINGS, ...((await this.loadData()) ?? {}) };
+    this.settings = { ...structuredClone(DEFAULT_SETTINGS), ...((await this.loadData()) ?? {}) };
   }
 
   async saveSettings(): Promise<void> {
