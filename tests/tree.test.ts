@@ -21,7 +21,7 @@ describe("buildTree — downloads grouping", () => {
       entry({ id: "c", downloads: 800_000 }),
       entry({ id: "d", downloads: 5_000 }),
     ];
-    const tree = buildTree(entries, "downloads", { now: NOW, trendingDeltas: {} });
+    const tree = buildTree(entries, "downloads", { now: NOW, trendingDeltas: {}, repoStats: {} });
     expect(tree.groups.map((g) => g.label)).toEqual(["3M+", "1M+", "500k+", "Under 10k"]);
     expect(tree.groups[0].entries.map((e) => e.id)).toEqual(["a"]);
     expect(tree.groups[2].entries.map((e) => e.id)).toEqual(["c"]);
@@ -32,7 +32,7 @@ describe("buildTree — downloads grouping", () => {
       entry({ id: "first", downloads: 200_000 }),
       entry({ id: "second", downloads: 150_000 }),
     ];
-    const tree = buildTree(entries, "downloads", { now: NOW, trendingDeltas: {} });
+    const tree = buildTree(entries, "downloads", { now: NOW, trendingDeltas: {}, repoStats: {} });
     expect(tree.groups[0].entries.map((e) => e.id)).toEqual(["first", "second"]);
   });
 });
@@ -43,7 +43,7 @@ describe("buildTree — stale split", () => {
       entry({ id: "fresh", downloads: 1_500_000, updated: NOW - 10 * DAY }),
       entry({ id: "old", downloads: 1_500_000, updated: NOW - 400 * DAY }),
     ];
-    const tree = buildTree(entries, "downloads", { now: NOW, trendingDeltas: {} });
+    const tree = buildTree(entries, "downloads", { now: NOW, trendingDeltas: {}, repoStats: {} });
     expect(tree.groups.map((g) => g.label)).toEqual(["1M+"]);
     expect(tree.groups[0].entries.map((e) => e.id)).toEqual(["fresh"]);
     expect(tree.stale.map((g) => g.label)).toEqual(["1M+"]);
@@ -52,14 +52,14 @@ describe("buildTree — stale split", () => {
 
   it("does not split stale for the updated sort (recency buckets already cover it)", () => {
     const entries = [entry({ id: "old", updated: NOW - 400 * DAY })];
-    const tree = buildTree(entries, "updated", { now: NOW, trendingDeltas: {} });
+    const tree = buildTree(entries, "updated", { now: NOW, trendingDeltas: {}, repoStats: {} });
     expect(tree.stale).toEqual([]);
     expect(tree.groups.map((g) => g.label)).toEqual(["Older"]);
   });
 
   it("treats unknown update dates as not stale", () => {
     const entries = [entry({ id: "u", downloads: 20_000, updated: 0 })];
-    const tree = buildTree(entries, "downloads", { now: NOW, trendingDeltas: {} });
+    const tree = buildTree(entries, "downloads", { now: NOW, trendingDeltas: {}, repoStats: {} });
     expect(tree.stale).toEqual([]);
     expect(tree.groups[0].entries.map((e) => e.id)).toEqual(["u"]);
   });
@@ -76,7 +76,7 @@ describe("buildTree — updated grouping", () => {
       entry({ id: "old", updated: NOW - 800 * DAY }),
       entry({ id: "unk", updated: 0 }),
     ];
-    const tree = buildTree(entries, "updated", { now: NOW, trendingDeltas: {} });
+    const tree = buildTree(entries, "updated", { now: NOW, trendingDeltas: {}, repoStats: {} });
     expect(tree.groups.map((g) => g.label)).toEqual([
       "This week", "This month", "Last 3 months", "Last 6 months", "This year", "Older", "Unknown",
     ]);
@@ -90,7 +90,7 @@ describe("buildTree — name grouping", () => {
       entry({ id: "b1", name: "BRAT" }),
       entry({ id: "n1", name: "1Password Helper" }),
     ];
-    const tree = buildTree(entries, "name", { now: NOW, trendingDeltas: {} });
+    const tree = buildTree(entries, "name", { now: NOW, trendingDeltas: {}, repoStats: {} });
     expect(tree.groups.map((g) => g.label)).toEqual(["A", "B", "#"]);
   });
 });
@@ -103,7 +103,21 @@ describe("buildTree — trending grouping", () => {
       entry({ id: "flat", downloads: 1 }),
     ];
     const deltas = { hot: 120_000, warm: 2_500 };
-    const tree = buildTree(entries, "trending", { now: NOW, trendingDeltas: deltas });
+    const tree = buildTree(entries, "trending", { now: NOW, trendingDeltas: deltas, repoStats: {} });
     expect(tree.groups.map((g) => g.label)).toEqual(["+100k or more", "+1k or more", "No recent growth"]);
+  });
+});
+
+describe("buildTree — stars grouping", () => {
+  it("buckets by scanned star tiers, with unscanned repos grouped last", () => {
+    const entries = [
+      entry({ id: "big", repo: "o/big", downloads: 1 }),
+      entry({ id: "mid", repo: "o/mid", downloads: 1 }),
+      entry({ id: "unscanned", repo: "o/unscanned", downloads: 1 }),
+    ];
+    const repoStats = { "o/big": { stars: 12_000, openIssues: 3 }, "o/mid": { stars: 250, openIssues: 40 } };
+    const tree = buildTree(entries, "stars", { now: NOW, trendingDeltas: {}, repoStats });
+    expect(tree.groups.map((g) => g.label)).toEqual(["10k+ stars", "100+ stars", "Not scanned yet"]);
+    expect(tree.groups[2].entries.map((e) => e.id)).toEqual(["unscanned"]);
   });
 });

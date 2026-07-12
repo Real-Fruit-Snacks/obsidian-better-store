@@ -1091,6 +1091,33 @@
   font-size: var(--font-ui-small);
 }
 
+/* GitHub catalog scan progress */
+.bs-scan-progress {
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+}
+
+.bs-scan-progress:hover {
+  background: var(--interactive-accent-hover, var(--interactive-accent));
+}
+
+.bs-scan-progress .svg-icon {
+  animation: bs-spin 1s linear infinite;
+}
+
+@keyframes bs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-scan-progress .svg-icon {
+    animation: none;
+  }
+}
+
 /* BRAT beta-plugin panel */
 .bs-brat {
   margin: 0 12px 10px;

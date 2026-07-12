@@ -22,6 +22,7 @@ function ctx(overrides: Partial<FilterContext> = {}): FilterContext {
     favoriteIds: new Set(),
     newIds: new Set(),
     trendingDeltas: {},
+    repoStats: {},
     now: NOW,
     ...overrides,
   };
@@ -44,9 +45,35 @@ describe("filterPlugins", () => {
     expect(got.map((e) => e.id).sort()).toEqual(["ai-helper", "tasks"]);
   });
 
-  it("applies minDownloads and updatedWithinMonths", () => {
+  it("applies minDownloads and releasedWithinDays", () => {
     expect(filterPlugins(entries, { ...EMPTY_FILTER, minDownloads: 400 }, ctx()).map((e) => e.id)).toEqual(["tasks", "ai-helper"]);
-    expect(filterPlugins(entries, { ...EMPTY_FILTER, updatedWithinMonths: 3 }, ctx()).map((e) => e.id)).toEqual(["tasks", "themer"]);
+    // ai-helper last released 400 days ago; tasks (now) and themer (10 days) pass a 90-day window.
+    expect(filterPlugins(entries, { ...EMPTY_FILTER, releasedWithinDays: 90 }, ctx()).map((e) => e.id)).toEqual(["tasks", "themer"]);
+    expect(filterPlugins(entries, { ...EMPTY_FILTER, releasedWithinDays: 1 }, ctx()).map((e) => e.id)).toEqual(["tasks"]);
+  });
+
+  it("filters by minimum GitHub stars using scanned stats (unscanned count as 0)", () => {
+    const withRepos: PluginEntry[] = [
+      entry({ id: "tasks", name: "Tasks", repo: "org/tasks" }),
+      entry({ id: "themer", name: "Themer", repo: "org/themer" }),
+      entry({ id: "ai-helper", name: "AI Helper", repo: "org/ai" }),
+    ];
+    const c = ctx({ repoStats: { "org/tasks": { stars: 500, openIssues: 2 }, "org/themer": { stars: 120, openIssues: 0 } } });
+    const got = filterPlugins(withRepos, { ...EMPTY_FILTER, minStars: 100 }, c).map((e) => e.id).sort();
+    expect(got).toEqual(["tasks", "themer"]); // org/ai unscanned → treated as 0 stars → excluded
+  });
+
+  it("sorts by stars and open issues, pushing unscanned plugins last", () => {
+    const c = ctx({
+      repoStats: { "org/tasks-repo": { stars: 900, openIssues: 3 }, "org/themer-repo": { stars: 50, openIssues: 40 } },
+    });
+    const withRepos: PluginEntry[] = [
+      entry({ id: "tasks", name: "Tasks", repo: "org/tasks-repo" }),
+      entry({ id: "themer", name: "Themer", repo: "org/themer-repo" }),
+      entry({ id: "unscanned", name: "Unscanned", repo: "org/unscanned" }),
+    ];
+    expect(filterPlugins(withRepos, { ...EMPTY_FILTER, sort: "stars" }, c).map((e) => e.id)).toEqual(["tasks", "themer", "unscanned"]);
+    expect(filterPlugins(withRepos, { ...EMPTY_FILTER, sort: "issues" }, c).map((e) => e.id)).toEqual(["themer", "tasks", "unscanned"]);
   });
 
   it("hides installed and ignored plugins", () => {

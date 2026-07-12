@@ -12,7 +12,7 @@ export interface UiState {
   treeExpanded: Record<string, string[]>;
   recentlyViewed: string[];
   /** Tab the store reopens to. */
-  lastTab: "all" | "updated" | "trending" | "installed";
+  lastTab: "all" | "trending" | "installed";
 }
 
 export interface FilterPreset {
@@ -33,6 +33,8 @@ export interface BetterStoreSettings {
   favoritePlugins: string[];
   showNewBadges: boolean;
   showCardStars: boolean;
+  /** How many days a scanned repo's stats stay fresh before a rescan re-fetches them. */
+  scanMaxAgeDays: number;
   backgroundUpdateCheck: boolean;
   updateNotice: boolean;
   showHealth: boolean;
@@ -62,6 +64,7 @@ export const DEFAULT_SETTINGS: BetterStoreSettings = {
   favoritePlugins: [],
   showNewBadges: true,
   showCardStars: true,
+  scanMaxAgeDays: 7,
   backgroundUpdateCheck: true,
   updateNotice: true,
   showHealth: true,
@@ -192,6 +195,22 @@ export class BetterStoreSettingTab extends PluginSettingTab {
         name: "Show GitHub stars on cards",
         desc: "With a token linked, fetches star counts for the cards on screen (one API request per plugin, cached for the session). Without a token this stays inactive so the anonymous rate limit is saved for the detail pane.",
         control: { type: "toggle", key: "showCardStars", defaultValue: true },
+      },
+      {
+        type: "group",
+        heading: "GitHub catalog scan",
+        items: [
+          {
+            name: "Scan the catalog for stars & open issues",
+            desc: "Fetches GitHub stars and open-issue counts for every plugin (one request each) so the whole catalog can be sorted and filtered by them. Requires a linked token; the scan is resumable and only re-fetches stale entries. Progress and a cancel button appear in the store header.",
+            action: () => void this.plugin.startCatalogScan(),
+          },
+          {
+            name: "Rescan stats older than (days)",
+            desc: "During a scan, entries fetched within this many days are considered fresh and skipped.",
+            control: { type: "slider", key: "scanMaxAgeDays", min: 1, max: 30, step: 1, defaultValue: 7 },
+          },
+        ],
       },
       {
         name: "Track recently viewed plugins",

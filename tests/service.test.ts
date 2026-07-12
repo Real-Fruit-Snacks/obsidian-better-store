@@ -165,9 +165,9 @@ describe("enrichment", () => {
 });
 
 describe("repo stats", () => {
-  it("fetches a star count with a single request and caches it for the session", async () => {
+  it("fetches stars + open issues with a single request and caches it", async () => {
     io.responses.set("https://api.github.com/repos/a/b", JSON.stringify({ stargazers_count: 42, open_issues_count: 7 }));
-    expect(await service.getRepoStats("a/b")).toEqual({ stars: 42 });
+    expect(await service.getRepoStats("a/b")).toMatchObject({ stars: 42, openIssues: 7 });
     expect(io.fetchLog).toEqual(["https://api.github.com/repos/a/b"]);
     io.fetchLog = [];
     await service.getRepoStats("a/b");
@@ -179,7 +179,7 @@ describe("repo stats", () => {
     io.responses.set("https://api.github.com/repos/a/b/releases?per_page=10", JSON.stringify([]));
     await service.getEnrichment("a/b");
     io.fetchLog = [];
-    expect(await service.getRepoStats("a/b")).toEqual({ stars: 42 });
+    expect(await service.getRepoStats("a/b")).toMatchObject({ stars: 42, openIssues: 7 });
     expect(io.fetchLog).toEqual([]);
   });
 
@@ -192,6 +192,61 @@ describe("repo stats", () => {
     expect(service.hasGithubToken()).toBe(false);
     const withToken = new DataService(io, "p", { ttlMs: HOUR, githubToken: "t" });
     expect(withToken.hasGithubToken()).toBe(true);
+  });
+});
+
+describe("scanRepos", () => {
+  function setRepo(repo: string, stars: number, issues: number) {
+    io.responses.set(`https://api.github.com/repos/${repo}`, JSON.stringify({ stargazers_count: stars, open_issues_count: issues }));
+  }
+
+  it("scans pending repos, persists the cache, and reports progress", async () => {
+    setRepo("a/1", 10, 1);
+    setRepo("a/2", 20, 2);
+    const progress: number[] = [];
+    const res = await service.scanRepos(["a/1", "a/2"], {
+      maxAgeMs: HOUR,
+      concurrency: 1,
+      onProgress: (done) => progress.push(done),
+    });
+    expect(res).toMatchObject({ scanned: 2, total: 2, rateLimited: false, cancelled: false });
+    expect(progress).toEqual([1, 2]);
+    const all = await service.getAllRepoStats();
+    expect(all["a/1"]).toMatchObject({ stars: 10, openIssues: 1 });
+    expect(all["a/2"]).toMatchObject({ stars: 20, openIssues: 2 });
+    expect(io.files.has("plugins/better-store/repostats.json")).toBe(true);
+  });
+
+  it("skips repos already scanned within the freshness window", async () => {
+    setRepo("a/1", 10, 1);
+    await service.scanRepos(["a/1"], { maxAgeMs: 24 * HOUR, concurrency: 1 });
+    io.fetchLog = [];
+    const res = await service.scanRepos(["a/1"], { maxAgeMs: 24 * HOUR, concurrency: 1 });
+    expect(res.total).toBe(0);
+    expect(io.fetchLog).toEqual([]);
+  });
+
+  it("halts cleanly on a rate limit with progress saved", async () => {
+    setRepo("a/1", 10, 1);
+    io.failures.set("https://api.github.com/repos/a/2", "HTTP 403 for url");
+    const res = await service.scanRepos(["a/1", "a/2"], { maxAgeMs: HOUR, concurrency: 1 });
+    expect(res.rateLimited).toBe(true);
+    const all = await service.getAllRepoStats();
+    expect(all["a/1"]).toMatchObject({ stars: 10 });
+    expect(all["a/2"]).toBeUndefined();
+  });
+
+  it("stops when cancelled", async () => {
+    setRepo("a/1", 10, 1);
+    setRepo("a/2", 20, 2);
+    let calls = 0;
+    const res = await service.scanRepos(["a/1", "a/2"], {
+      maxAgeMs: HOUR,
+      concurrency: 1,
+      isCancelled: () => calls++ >= 1, // allow the first, cancel before the second
+    });
+    expect(res.cancelled).toBe(true);
+    expect(res.scanned).toBe(1);
   });
 });
 

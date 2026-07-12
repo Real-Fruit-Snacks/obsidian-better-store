@@ -16,6 +16,7 @@ export interface TreeModel {
 export interface TreeContext {
   now: number;
   trendingDeltas: Record<string, number>;
+  repoStats: Record<string, { stars: number; openIssues: number }>;
 }
 
 const DAY = 86_400_000;
@@ -52,6 +53,23 @@ const TRENDING_BUCKETS = [
 
 const NAME_ORDER = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ", "#"];
 
+const STAR_BUCKETS = [
+  { min: 10_000, label: "10k+ stars" },
+  { min: 1_000, label: "1k+ stars" },
+  { min: 100, label: "100+ stars" },
+  { min: 1, label: "Under 100 stars" },
+  { min: 0, label: "No stars" },
+] as const;
+
+const ISSUE_BUCKETS = [
+  { min: 100, label: "100+ open issues" },
+  { min: 10, label: "10+ open issues" },
+  { min: 1, label: "1+ open issues" },
+  { min: 0, label: "No open issues" },
+] as const;
+
+const NOT_SCANNED = "Not scanned yet";
+
 function labelFor(entry: PluginEntry, sort: SortKey, ctx: TreeContext): string {
   switch (sort) {
     case "downloads":
@@ -69,6 +87,14 @@ function labelFor(entry: PluginEntry, sort: SortKey, ctx: TreeContext): string {
       const first = entry.name.trim().charAt(0).toUpperCase();
       return /[A-Z]/.test(first) ? first : "#";
     }
+    case "stars": {
+      const stat = ctx.repoStats[entry.repo];
+      return stat == null ? NOT_SCANNED : STAR_BUCKETS.find((b) => stat.stars >= b.min)!.label;
+    }
+    case "issues": {
+      const stat = ctx.repoStats[entry.repo];
+      return stat == null ? NOT_SCANNED : ISSUE_BUCKETS.find((b) => stat.openIssues >= b.min)!.label;
+    }
   }
 }
 
@@ -82,6 +108,10 @@ function bucketOrder(sort: SortKey): readonly string[] {
       return TRENDING_BUCKETS.map((b) => b.label);
     case "name":
       return NAME_ORDER;
+    case "stars":
+      return [...STAR_BUCKETS.map((b) => b.label), NOT_SCANNED];
+    case "issues":
+      return [...ISSUE_BUCKETS.map((b) => b.label), NOT_SCANNED];
   }
 }
 

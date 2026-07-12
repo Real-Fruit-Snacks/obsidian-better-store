@@ -23,6 +23,15 @@ export default class BetterStorePlugin extends Plugin {
   private settingsListeners: (() => void)[] = [];
   private detailListeners: ((id: string) => void)[] = [];
   private tokenListeners: (() => void)[] = [];
+  private scanListeners: (() => void)[] = [];
+  /** Live progress of a catalog-wide GitHub stats scan. */
+  scanState: { running: boolean; done: number; total: number; rateLimited: boolean } = {
+    running: false,
+    done: 0,
+    total: 0,
+    rateLimited: false,
+  };
+  private scanCancelled = false;
   private serviceKey = "";
   private ribbonEl: HTMLElement | null = null;
   private lastNotifiedUpdateCount = 0;
@@ -59,6 +68,11 @@ export default class BetterStorePlugin extends Plugin {
       id: "apply-profile",
       name: "Apply plugin profile",
       callback: () => new ProfileSuggestModal(this.app, this).open(),
+    });
+    this.addCommand({
+      id: "scan-catalog",
+      name: "Scan catalog for GitHub stars & issues",
+      callback: () => void this.startCatalogScan(),
     });
 
     this.app.workspace.onLayoutReady(() => {
@@ -310,6 +324,63 @@ export default class BetterStorePlugin extends Plugin {
     };
   }
 
+  registerScanListener(cb: () => void): () => void {
+    this.scanListeners.push(cb);
+    return () => {
+      this.scanListeners = this.scanListeners.filter((c) => c !== cb);
+    };
+  }
+
+  private notifyScan(): void {
+    for (const cb of this.scanListeners) cb();
+  }
+
+  /**
+   * Scan every catalog plugin's GitHub repo for stars + open issues, filling the
+   * persistent cache so the whole catalog can be sorted/filtered by those metrics.
+   * Requires a token (60/hour is impractical for thousands of repos); resumable and
+   * incremental, so a paused or cancelled scan continues where it left off.
+   */
+  async startCatalogScan(): Promise<void> {
+    if (this.scanState.running) return;
+    if (!this.service.hasGithubToken()) {
+      new Notice("Better Store: link a GitHub token in settings before scanning the catalog.");
+      return;
+    }
+    let repos: string[];
+    try {
+      repos = (await this.service.loadCatalog()).entries.map((e) => e.repo);
+    } catch {
+      new Notice("Better Store: could not load the catalog to scan.");
+      return;
+    }
+    this.scanCancelled = false;
+    this.scanState = { running: true, done: 0, total: 0, rateLimited: false };
+    this.notifyScan();
+    const maxAgeMs = Math.max(1, this.settings.scanMaxAgeDays) * 86_400_000;
+    const res = await this.service.scanRepos(repos, {
+      maxAgeMs,
+      onProgress: (done, total) => {
+        this.scanState = { running: true, done, total, rateLimited: false };
+        this.notifyScan();
+      },
+      isCancelled: () => this.scanCancelled,
+    });
+    this.scanState = { running: false, done: res.scanned, total: res.total, rateLimited: res.rateLimited };
+    this.notifyScan();
+    if (res.rateLimited) {
+      new Notice(`Better Store: scan paused at GitHub's rate limit — ${res.scanned} of ${res.total} done. Resume later to continue.`);
+    } else if (res.cancelled) {
+      new Notice(`Better Store: scan cancelled — ${res.scanned} scanned this run.`);
+    } else {
+      new Notice(`Better Store: scan complete — refreshed ${res.scanned} plugin${res.scanned === 1 ? "" : "s"}.`);
+    }
+  }
+
+  cancelCatalogScan(): void {
+    this.scanCancelled = true;
+  }
+
   registerSettingsListener(cb: () => void): () => void {
     this.settingsListeners.push(cb);
     return () => {
@@ -321,6 +392,8 @@ export default class BetterStorePlugin extends Plugin {
     const raw = (((await this.loadData()) as (Partial<BetterStoreSettings> & { githubToken?: string }) | null) ?? {});
     this.settings = { ...structuredClone(DEFAULT_SETTINGS), ...raw };
     this.settings.ui = { ...structuredClone(DEFAULT_SETTINGS.ui), ...(raw.ui ?? {}) };
+    // The "Recently updated" tab became a sort option; send old sessions to All.
+    if ((this.settings.ui.lastTab as string) === "updated") this.settings.ui.lastTab = "all";
     // Pre-0.3.2 versions kept the GitHub token in plain data.json; move it
     // into Obsidian's secret storage and scrub it from plugin data.
     if (typeof raw.githubToken === "string") {

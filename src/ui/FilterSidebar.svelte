@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ALL_CATEGORIES } from "../data/categories";
-  import type { FilterState, SortKey } from "../data/filter";
+  import { EMPTY_FILTER, type FilterState, type SortKey } from "../data/filter";
   import type { FilterPreset } from "../settings";
   import Icon from "./Icon.svelte";
 
@@ -20,7 +20,8 @@
 
   function applyPreset(name: string): void {
     const preset = presets.find((p) => p.name === name);
-    if (preset) onChange({ ...preset.state });
+    // Merge over defaults so presets saved before newer filter fields still apply cleanly.
+    if (preset) onChange({ ...EMPTY_FILTER, ...preset.state });
   }
 
   const SORTS: { key: SortKey; label: string }[] = [
@@ -28,13 +29,17 @@
     { key: "updated", label: "Recently updated" },
     { key: "name", label: "Name" },
     { key: "trending", label: "Trending" },
+    { key: "stars", label: "GitHub stars (scanned)" },
+    { key: "issues", label: "Open issues (scanned)" },
   ];
 
-  const UPDATED_OPTIONS: { value: number | null; label: string }[] = [
+  const RELEASED_OPTIONS: { value: number | null; label: string }[] = [
     { value: null, label: "Any time" },
-    { value: 3, label: "Last 3 months" },
-    { value: 6, label: "Last 6 months" },
-    { value: 12, label: "Last 12 months" },
+    { value: 1, label: "Last 24 hours" },
+    { value: 7, label: "Last 7 days" },
+    { value: 30, label: "Last 30 days" },
+    { value: 90, label: "Last 3 months" },
+    { value: 365, label: "Last year" },
   ];
 
   function toggleCategory(cat: string): void {
@@ -94,16 +99,16 @@
   {/if}
 
   <label class="bs-field">
-    <span class="bs-field-label">Updated</span>
+    <span class="bs-field-label">Released within</span>
     <select
       class="dropdown"
-      value={String(filters.updatedWithinMonths)}
+      value={String(filters.releasedWithinDays)}
       onchange={(e) => {
         const v = e.currentTarget.value;
-        onChange({ ...filters, updatedWithinMonths: v === "null" ? null : Number(v) });
+        onChange({ ...filters, releasedWithinDays: v === "null" ? null : Number(v) });
       }}
     >
-      {#each UPDATED_OPTIONS as o (String(o.value))}<option value={String(o.value)}>{o.label}</option>{/each}
+      {#each RELEASED_OPTIONS as o (String(o.value))}<option value={String(o.value)}>{o.label}</option>{/each}
     </select>
   </label>
 
@@ -115,6 +120,17 @@
       step="1000"
       value={filters.minDownloads}
       oninput={(e) => onChange({ ...filters, minDownloads: Number(e.currentTarget.value) || 0 })}
+    />
+  </label>
+
+  <label class="bs-field">
+    <span class="bs-field-label">Min stars (scanned)</span>
+    <input
+      type="number"
+      min="0"
+      step="100"
+      value={filters.minStars}
+      oninput={(e) => onChange({ ...filters, minStars: Number(e.currentTarget.value) || 0 })}
     />
   </label>
 

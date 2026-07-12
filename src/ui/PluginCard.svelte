@@ -64,7 +64,7 @@
   </div>
   <div class="bs-card-meta">
     <span title="Downloads"><Icon name="download" />{formatCount(entry.downloads)}</span>
-    {#if stars != null}<span title="GitHub stars"><Icon name="star" />{formatCount(stars)}</span>{/if}
+    {#if stars != null && stars > 0}<span title="GitHub stars"><Icon name="star" />{formatCount(stars)}</span>{/if}
     <button
       class="bs-author-link"
       title={`Show all plugins by ${entry.author}`}

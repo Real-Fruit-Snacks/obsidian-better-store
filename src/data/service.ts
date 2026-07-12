@@ -3,6 +3,7 @@ import { mergeRegistry, parseRegistry, slimStats } from "./registry";
 import { classifyPlugin } from "./categories";
 import { appendSnapshot, computeDeltas, historyFor, type Snapshot } from "./trending";
 import { newIdsWithin, updateKnownIds, type KnownIds } from "./newness";
+import { pendingRepos, type RepoStats } from "./scan";
 
 export const REGISTRY_URL =
   "https://raw.githubusercontent.com/obsidianmd/obsidian-releases/HEAD/community-plugins.json";
@@ -51,7 +52,8 @@ export interface Enrichment {
 export class DataService {
   private readmes = new Map<string, string>();
   private enrichments = new Map<string, Enrichment>();
-  private repoStars = new Map<string, number>();
+  /** Persistent stars/open-issues cache, loaded lazily from repostats.json. */
+  private repoStatsCache: Map<string, RepoStats> | null = null;
   /** Serializes read-modify-write operations on the local snapshot files. */
   private writeLock: Promise<unknown> = Promise.resolve();
 
@@ -155,19 +157,101 @@ export class DataService {
     return Boolean(this.opts.githubToken);
   }
 
-  /** Star count only — a single API call, cheap enough for card-level display. */
-  async getRepoStats(repo: string): Promise<{ stars: number }> {
-    const hit = this.repoStars.get(repo);
-    if (hit != null) return { stars: hit };
+  private async ensureRepoStats(): Promise<Map<string, RepoStats>> {
+    if (this.repoStatsCache == null) {
+      const stored = await this.readJson<{ stats?: Record<string, RepoStats> }>("repostats.json");
+      this.repoStatsCache = new Map(Object.entries(stored?.stats ?? {}));
+    }
+    return this.repoStatsCache;
+  }
+
+  /**
+   * Stars + open issues for one repo — a single API call. Reads through the
+   * persistent scan cache first, then any already-fetched enrichment, so cards
+   * and sorts reuse scanned data without re-hitting the API.
+   */
+  async getRepoStats(repo: string): Promise<RepoStats> {
+    const cache = await this.ensureRepoStats();
+    const hit = cache.get(repo);
+    if (hit != null) return hit;
     const enriched = this.enrichments.get(repo);
     if (enriched) {
-      this.repoStars.set(repo, enriched.stars);
-      return { stars: enriched.stars };
+      const stats: RepoStats = { stars: enriched.stars, openIssues: enriched.openIssues, scannedAt: this.io.now() };
+      cache.set(repo, stats);
+      return stats;
     }
     const raw = await this.githubFetch(`https://api.github.com/repos/${repo}`);
-    const stars = (JSON.parse(raw) as { stargazers_count?: number }).stargazers_count ?? 0;
-    this.repoStars.set(repo, stars);
-    return { stars };
+    const data = JSON.parse(raw) as { stargazers_count?: number; open_issues_count?: number };
+    const stats: RepoStats = {
+      stars: data.stargazers_count ?? 0,
+      openIssues: data.open_issues_count ?? 0,
+      scannedAt: this.io.now(),
+    };
+    cache.set(repo, stats);
+    return stats;
+  }
+
+  /** Snapshot of all scanned repo stats, keyed by repo. */
+  async getAllRepoStats(): Promise<Record<string, RepoStats>> {
+    return Object.fromEntries(await this.ensureRepoStats());
+  }
+
+  private persistRepoStats(): Promise<void> {
+    const cache = this.repoStatsCache;
+    if (cache == null) return Promise.resolve();
+    return this.serialize(() => this.writeJson("repostats.json", { stats: Object.fromEntries(cache) }));
+  }
+
+  /**
+   * Scan the given repos for stars/open issues, filling the persistent cache.
+   * Resumable and incremental (skips repos scanned within maxAgeMs), cancellable,
+   * and rate-limit aware: on a rate-limit error it stops cleanly with progress saved.
+   */
+  async scanRepos(
+    repos: string[],
+    opts: {
+      maxAgeMs: number;
+      concurrency?: number;
+      onProgress?: (done: number, total: number) => void;
+      isCancelled?: () => boolean;
+    }
+  ): Promise<{ scanned: number; total: number; rateLimited: boolean; cancelled: boolean }> {
+    const cache = await this.ensureRepoStats();
+    const now = this.io.now();
+    const queue = pendingRepos(repos, Object.fromEntries(cache), now, opts.maxAgeMs);
+    const total = queue.length;
+    let done = 0;
+    let rateLimited = false;
+    let cancelled = false;
+
+    const worker = async (): Promise<void> => {
+      while (queue.length > 0) {
+        if (rateLimited || cancelled) return;
+        if (opts.isCancelled?.()) {
+          cancelled = true;
+          return;
+        }
+        const repo = queue.shift();
+        if (repo == null) return;
+        try {
+          await this.getRepoStats(repo);
+        } catch (e) {
+          if (e instanceof RateLimitError) {
+            rateLimited = true;
+            return;
+          }
+          // Skip a single bad repo (404, transient) but keep scanning.
+        }
+        done++;
+        opts.onProgress?.(done, total);
+        if (done % 25 === 0) await this.persistRepoStats();
+      }
+    };
+
+    const workers = Math.max(1, Math.min(opts.concurrency ?? 5, 8));
+    await Promise.all(Array.from({ length: workers }, () => worker()));
+    await this.persistRepoStats();
+    return { scanned: done, total, rateLimited, cancelled };
   }
 
   private githubHeaders(): Record<string, string> | undefined {

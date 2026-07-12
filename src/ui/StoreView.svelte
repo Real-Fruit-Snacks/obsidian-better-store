@@ -33,6 +33,9 @@
   let settingsTick = $state(0);
   /** Bumped when a GitHub token is linked so the detail pane re-fetches. */
   let tokenTick = $state(0);
+  /** Scanned GitHub stats keyed by repo; powers stars/issues sorts and filters. */
+  let repoStats = $state<Record<string, { stars: number; openIssues: number }>>({});
+  let scanState = $state(plugin.scanState);
 
   let filters = $state<FilterState>({
     ...EMPTY_FILTER,
@@ -42,16 +45,13 @@
 
   const TABS: { id: TabId; label: string }[] = [
     { id: "all", label: "All" },
-    { id: "updated", label: "Recently updated" },
     { id: "trending", label: "Trending" },
     { id: "installed", label: "Installed" },
   ];
 
   let trendingReady = $derived(Object.keys(trendingDeltas).length > 0);
 
-  let requestedSort = $derived<SortKey>(
-    tab === "updated" ? "updated" : tab === "trending" ? "trending" : filters.sort
-  );
+  let requestedSort = $derived<SortKey>(tab === "trending" ? "trending" : filters.sort);
 
   // Without snapshot history all trending deltas are zero, which would yield
   // an arbitrary order — fall back to downloads until history exists.
@@ -103,6 +103,7 @@
       favoriteIds,
       newIds,
       trendingDeltas,
+      repoStats,
       now: Date.now(),
     });
   });
@@ -160,7 +161,7 @@
 
   let tree = $derived(
     layout === "tree"
-      ? buildTree(visible, effectiveFilters.sort, { now: Date.now(), trendingDeltas })
+      ? buildTree(visible, effectiveFilters.sort, { now: Date.now(), trendingDeltas, repoStats })
       : null
   );
 
@@ -220,12 +221,21 @@
       trendingDeltas = await plugin.service.getTrendingDeltas();
       newIds = await plugin.service.getNewIds(NEW_WINDOW_DAYS);
       installedIds = getInstalledIds(plugin.app);
+      repoStats = await plugin.service.getAllRepoStats();
     } catch (e) {
       error = e instanceof Error ? e.message : String(e);
     } finally {
       loading = false;
       if (plugin.pendingDetailId) showDetail(plugin.pendingDetailId);
     }
+  }
+
+  async function refreshRepoStats(): Promise<void> {
+    repoStats = await plugin.service.getAllRepoStats();
+  }
+
+  function startScan(): void {
+    void plugin.startCatalogScan();
   }
 
   /** Quick-jump / external requests to open a plugin's detail pane. */
@@ -347,6 +357,10 @@
       starsHalted = false;
       tokenTick += 1;
     });
+    const unsubscribeScan = plugin.registerScanListener(() => {
+      scanState = { ...plugin.scanState };
+      void refreshRepoStats();
+    });
     const onEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && selected) {
         selected = null;
@@ -359,6 +373,7 @@
       unsubscribeSettings();
       unsubscribeDetail();
       unsubscribeToken();
+      unsubscribeScan();
       view.contentEl.removeEventListener("keydown", onEscape);
     };
   });
@@ -378,6 +393,19 @@
     </nav>
     <div class="bs-header-actions">
       {#if tab !== "installed"}
+        {#if scanState.running}
+          <button class="bs-refresh bs-scan-progress" title="Cancel the GitHub scan" onclick={() => plugin.cancelCatalogScan()}>
+            <Icon name="loader" />Scanning {scanState.done.toLocaleString()}/{scanState.total.toLocaleString()} · Cancel
+          </button>
+        {:else}
+          <button
+            class="bs-refresh"
+            title="Fetch GitHub stars & open issues for the whole catalog (needs a token) so you can sort by them"
+            onclick={startScan}
+          >
+            <Icon name="github" />Scan GitHub
+          </button>
+        {/if}
         <button
           class="bs-refresh"
           title={layout === "grid" ? "Switch to tree view" : "Switch to grid view"}
@@ -487,7 +515,7 @@
                 selected={selected?.id === entry.id}
                 starred={favoriteIds.has(entry.id)}
                 isNew={showNewBadges && newIds.has(entry.id)}
-                stars={cardStars.get(entry.id)}
+                stars={cardStars.get(entry.id) ?? repoStats[entry.repo]?.stars}
                 onSelect={() => (selected = entry)}
                 onToggleStar={() => void toggleFavorite(entry.id)}
                 onIgnore={(e) => openIgnoreMenu(e, entry)}

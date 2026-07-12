@@ -1,7 +1,7 @@
 import type { App } from "obsidian";
 import { BRAT_PLUGIN_ID } from "../data/brat";
 
-export type TabId = "all" | "updated" | "trending" | "installed";
+export type TabId = "all" | "trending" | "installed";
 
 /** Shape of Obsidian's internal (untyped) `app.plugins` API. Documented risk in the spec:
  * widely used by other plugins, but could change in an Obsidian update. */

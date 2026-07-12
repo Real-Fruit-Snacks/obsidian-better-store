@@ -203,6 +203,7 @@ footer {
         <tr><td>Hide installed</td><td>Start with already-installed plugins hidden.</td></tr>
         <tr><td>Show "New" badges</td><td>Highlight plugins that entered the registry within the last 14 days.</td></tr>
         <tr><td>Show GitHub stars on cards</td><td>With a token linked, star counts load for the cards on screen (one request per plugin, session-cached). Inactive without a token so the anonymous rate limit is saved for the detail pane.</td></tr>
+        <tr><td>Scan the catalog for stars &amp; issues</td><td>Fetches GitHub stars + open issues for every plugin into a persistent cache, enabling catalog-wide sort by stars / open issues and a min-stars filter. Requires a token; resumable, cancellable, rate-limit aware, with a rescan-freshness control.</td></tr>
         <tr><td>Track recently viewed</td><td>Ranks plugins you've opened recently first in quick-jump search.</td></tr>
         <tr><td>Detail pane</td><td>Individual toggles for the maintenance-health chip, similar-plugins row, and download-history sparkline.</td></tr>
         <tr><td>Updates</td><td>Background update checks (ribbon badge) and the found-updates notice, each togglable. On the Installed tab: skip a version, stop checking a plugin, or mute all update nags for 1 hour–1 week.</td></tr>

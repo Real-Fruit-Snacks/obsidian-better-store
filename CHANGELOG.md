@@ -4,6 +4,16 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.15] - 2026-07-12
+
+### Added
+- **Full-catalog GitHub scan.** A **Scan GitHub** button in the store header (and a "Scan catalog for GitHub stars & issues" command) fetches stars and open-issue counts for every plugin — one request each — into a persistent cache. It requires a linked token, shows live progress, is cancellable, resumes where it left off, and pauses cleanly at the rate limit. Once scanned you can **sort the whole catalog by GitHub stars or open issues** and filter by **minimum stars**. Managed in settings (with a rescan-freshness control).
+- **"Released within" filter** with finer buckets (24 hours / 7 days / 30 days / 3 months / 1 year), replacing the old month-only "Updated" control.
+
+### Changed
+- Removed the **"Recently updated" tab** — it was just a sort, and it's available as a sort option on the All tab (sessions that were on it reopen to All).
+- Card star counts hide when a repo genuinely has 0 stars, instead of showing "0".
+
 ## [0.3.14] - 2026-07-12
 
 ### Changed
@@ -209,6 +219,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.15]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.15
 [0.3.14]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.14
 [0.3.13]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.13
 [0.3.12]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.12
