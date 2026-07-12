@@ -196,7 +196,7 @@ footer {
     <table>
       <thead><tr><th>Setting</th><th>What it does</th></tr></thead>
       <tbody>
-        <tr><td>GitHub token</td><td>Optional. Raises the GitHub API rate limit for stars/issues/releases data. A classic token with no scopes is enough. Stored in plain text in the vault's plugin data — omit it on synced vaults you don't trust.</td></tr>
+        <tr><td>GitHub token</td><td>Optional. Raises the GitHub API rate limit for stars/issues/releases data. A classic token with no scopes is enough. Stored in Obsidian's secret storage — never in plugin data, so it doesn't travel with vault sync or backups.</td></tr>
         <tr><td>Cache lifetime</td><td>How long the plugin catalog is cached (default 12 h). Manual refresh in the store header.</td></tr>
         <tr><td>Default sort</td><td>Downloads, recently updated, name, or trending.</td></tr>
         <tr><td>Hide installed</td><td>Start with already-installed plugins hidden.</td></tr>

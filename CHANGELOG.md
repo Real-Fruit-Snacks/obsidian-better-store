@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.2] - 2026-07-12
+
+### Changed
+- The GitHub token now lives in **Obsidian's secret storage** (the built-in keychain) instead of plain-text plugin data. Existing tokens migrate automatically on first load and are scrubbed from `data.json`; the settings field uses Obsidian's masked secret input.
+
 ## [0.3.1] - 2026-07-12
 
 ### Changed
@@ -134,6 +139,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.2]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.2
 [0.3.1]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.1
 [0.3.0]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.0
 [0.2.1]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.2.1

@@ -9,6 +9,9 @@ import { QuickJumpModal } from "./ui/QuickJumpModal";
 import { ImportModal, ProfileSuggestModal } from "./ui/modals";
 import { getPluginsApi } from "./ui/store-context";
 
+/** Secret-storage id for the optional GitHub token (Obsidian keychain). */
+const GITHUB_TOKEN_SECRET = "better-store-github-token";
+
 export default class BetterStorePlugin extends Plugin {
   settings: BetterStoreSettings = DEFAULT_SETTINGS;
   service!: DataService;
@@ -178,8 +181,18 @@ export default class BetterStorePlugin extends Plugin {
     };
     return new DataService(io, this.manifest.dir ?? ".", {
       ttlMs: this.settings.cacheTtlHours * 3_600_000,
-      githubToken: this.settings.githubToken || undefined,
+      githubToken: this.getGithubToken() || undefined,
     });
+  }
+
+  getGithubToken(): string {
+    return this.app.secretStorage.getSecret(GITHUB_TOKEN_SECRET) ?? "";
+  }
+
+  /** Store the token in Obsidian's secret storage and refresh the service. */
+  setGithubToken(token: string): void {
+    this.app.secretStorage.setSecret(GITHUB_TOKEN_SECRET, token);
+    this.service = this.createService();
   }
 
   registerSettingsListener(cb: () => void): () => void {
@@ -190,13 +203,22 @@ export default class BetterStorePlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    const raw = (((await this.loadData()) as Partial<BetterStoreSettings> | null) ?? {});
+    const raw = (((await this.loadData()) as (Partial<BetterStoreSettings> & { githubToken?: string }) | null) ?? {});
     this.settings = { ...structuredClone(DEFAULT_SETTINGS), ...raw };
     this.settings.ui = { ...structuredClone(DEFAULT_SETTINGS.ui), ...(raw.ui ?? {}) };
+    // Pre-0.3.2 versions kept the GitHub token in plain data.json; move it
+    // into Obsidian's secret storage and scrub it from plugin data.
+    if (typeof raw.githubToken === "string") {
+      if (raw.githubToken && !this.app.secretStorage.getSecret(GITHUB_TOKEN_SECRET)) {
+        this.app.secretStorage.setSecret(GITHUB_TOKEN_SECRET, raw.githubToken);
+      }
+      delete (this.settings as unknown as Record<string, unknown>).githubToken;
+      await this.saveData(this.settings);
+    }
   }
 
   private currentServiceKey(): string {
-    return `${this.settings.githubToken}|${this.settings.cacheTtlHours}`;
+    return `${this.settings.cacheTtlHours}`;
   }
 
   async saveSettings(): Promise<void> {

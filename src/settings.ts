@@ -1,4 +1,4 @@
-import { PluginSettingTab, type App, type Setting, type SettingDefinitionItem } from "obsidian";
+import { PluginSettingTab, SecretComponent, type App, type Setting, type SettingDefinitionItem } from "obsidian";
 import type { FilterState, SortKey } from "./data/filter";
 import type { PluginProfile } from "./data/profiles";
 import type BetterStorePlugin from "./main";
@@ -18,7 +18,6 @@ export interface FilterPreset {
 }
 
 export interface BetterStoreSettings {
-  githubToken: string;
   cacheTtlHours: number;
   defaultSort: SortKey;
   hideInstalledByDefault: boolean;
@@ -39,7 +38,6 @@ export interface BetterStoreSettings {
 }
 
 export const DEFAULT_SETTINGS: BetterStoreSettings = {
-  githubToken: "",
   cacheTtlHours: 12,
   defaultSort: "downloads",
   hideInstalledByDefault: false,
@@ -98,21 +96,17 @@ export class BetterStoreSettingTab extends PluginSettingTab {
     return [
       {
         name: "GitHub token",
-        desc: "Optional. Raises the GitHub API rate limit (60/hour without a token) used for stars, issues, and release data. A classic token with no scopes is enough.",
+        desc: "Optional. Raises the GitHub API rate limit (60/hour without a token) used for stars, issues, and release data. A classic token with no scopes is enough. Stored in Obsidian's secret storage, not in plugin data.",
         render: (setting: Setting) => {
           let timer: number | null = null;
-          setting.addText((text) => {
-            text.inputEl.type = "password";
-            text
-              .setPlaceholder("ghp_...")
-              .setValue(this.plugin.settings.githubToken)
-              .onChange((value) => {
-                if (timer != null) window.clearTimeout(timer);
-                timer = window.setTimeout(() => {
-                  this.plugin.settings.githubToken = value.trim();
-                  void this.plugin.saveSettings();
-                }, 600);
-              });
+          setting.addComponent((el) => {
+            const secret = new SecretComponent(this.app, el);
+            secret.setValue(this.plugin.getGithubToken());
+            secret.onChange((value) => {
+              if (timer != null) window.clearTimeout(timer);
+              timer = window.setTimeout(() => this.plugin.setGithubToken(value.trim()), 600);
+            });
+            return secret;
           });
         },
       },

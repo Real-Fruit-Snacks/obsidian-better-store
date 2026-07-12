@@ -75,7 +75,7 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| GitHub token | — | Optional. Raises the GitHub API rate limit (60/hr without) used for stars, issues, and releases. A classic token with **no scopes** is enough. Stored in plain text in the plugin's `data.json`, so it travels with vault sync/backups — omit it on vaults you sync somewhere you don't trust. |
+| GitHub token | — | Optional. Raises the GitHub API rate limit (60/hr without) used for stars, issues, and releases. A classic token with **no scopes** is enough. Stored in **Obsidian's secret storage**, not in plugin data — it doesn't travel with `data.json` backups or sync. |
 | Cache lifetime | 12 h | How long the plugin catalog is cached. Manual refresh in the store header. |
 | Default sort | Downloads | Downloads, recently updated, name, or trending. |
 | Hide installed by default | Off | Start browsing with installed plugins hidden. |
@@ -121,7 +121,7 @@ src/
 
 - **Network** — requests go only to the official `obsidianmd/obsidian-releases` registry, `raw.githubusercontent.com`, and `api.github.com`. No telemetry, no third-party services.
 - **Clipboard** — write-only, and only when you click a copy/export action. The plugin never reads your clipboard.
-- **Storage** — settings and UI state live in Obsidian's plugin data (`data.json`); caches live in the plugin's own folder.
+- **Storage** — settings and UI state live in Obsidian's plugin data (`data.json`); caches live in the plugin's own folder; the optional GitHub token lives in Obsidian's secret storage, never in plugin data.
 
 ## Self-hosting
 
