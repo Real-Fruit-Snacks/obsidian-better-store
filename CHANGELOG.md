@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.9] - 2026-07-12
+
+### Changed
+- Linking a GitHub token secret now verifies it immediately — you get the valid / invalid / rate-limit notice the moment you link, instead of having to press Test yourself. The Test button stays for re-checking later; unlinking stays silent.
+
 ## [0.3.8] - 2026-07-12
 
 ### Fixed
@@ -175,6 +180,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.9]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.9
 [0.3.8]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.8
 [0.3.7]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.7
 [0.3.6]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.6

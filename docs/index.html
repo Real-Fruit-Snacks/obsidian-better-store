@@ -196,7 +196,7 @@ footer {
     <table>
       <thead><tr><th>Setting</th><th>What it does</th></tr></thead>
       <tbody>
-        <tr><td>GitHub token</td><td>Optional. Link a secret from Obsidian's secret storage holding a GitHub personal access token — it raises the API rate limit for stars/issues/releases data. A classic token with no scopes is enough. Only the secret's name is stored in plugin data; the token never leaves secret storage. A Test button verifies the linked token and reports your remaining rate limit.</td></tr>
+        <tr><td>GitHub token</td><td>Optional. Link a secret from Obsidian's secret storage holding a GitHub personal access token — it raises the API rate limit for stars/issues/releases data. A classic token with no scopes is enough. Only the secret's name is stored in plugin data; the token never leaves secret storage. The token is verified automatically when linked; a Test button re-checks it anytime, reporting your remaining rate limit.</td></tr>
         <tr><td>Cache lifetime</td><td>How long the plugin catalog is cached (default 12 h). Manual refresh in the store header.</td></tr>
         <tr><td>Default sort</td><td>Downloads, recently updated, name, or trending.</td></tr>
         <tr><td>Open the store in</td><td>A tab, a split, or a new window (desktop-only; falls back to a tab on mobile).</td></tr>

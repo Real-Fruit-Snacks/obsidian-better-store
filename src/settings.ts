@@ -108,7 +108,14 @@ export class BetterStoreSettingTab extends PluginSettingTab {
             // The component links a named secret: its value is the secret's
             // name, not the token itself (null when nothing is linked).
             secret.setValue(this.plugin.settings.githubSecretId);
-            secret.onChange((id) => void this.plugin.setGithubSecretId((id ?? "").trim()));
+            secret.onChange((id) => {
+              void (async () => {
+                const next = (id ?? "").trim();
+                await this.plugin.setGithubSecretId(next);
+                // Verify right away so a bad link surfaces now, not days later.
+                if (next) await this.plugin.testGithubToken();
+              })();
+            });
             return secret;
           });
           setting.addButton((btn) =>
