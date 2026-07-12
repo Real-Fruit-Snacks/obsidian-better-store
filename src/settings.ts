@@ -29,6 +29,7 @@ export interface BetterStoreSettings {
   ignoredCategories: string[];
   favoritePlugins: string[];
   showNewBadges: boolean;
+  showCardStars: boolean;
   backgroundUpdateCheck: boolean;
   updateNotice: boolean;
   showHealth: boolean;
@@ -51,6 +52,7 @@ export const DEFAULT_SETTINGS: BetterStoreSettings = {
   ignoredCategories: [],
   favoritePlugins: [],
   showNewBadges: true,
+  showCardStars: true,
   backgroundUpdateCheck: true,
   updateNotice: true,
   showHealth: true,
@@ -166,6 +168,11 @@ export class BetterStoreSettingTab extends PluginSettingTab {
         name: `Show "New" badges`,
         desc: `Highlight plugins that entered the registry within the last ${NEW_WINDOW_DAYS} days.`,
         control: { type: "toggle", key: "showNewBadges", defaultValue: true },
+      },
+      {
+        name: "Show GitHub stars on cards",
+        desc: "With a token linked, fetches star counts for the cards on screen (one API request per plugin, cached for the session). Without a token this stays inactive so the anonymous rate limit is saved for the detail pane.",
+        control: { type: "toggle", key: "showCardStars", defaultValue: true },
       },
       {
         name: "Track recently viewed plugins",

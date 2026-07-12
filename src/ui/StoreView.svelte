@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
+  import { SvelteMap } from "svelte/reactivity";
   import { Menu, Notice } from "obsidian";
   import type BetterStorePlugin from "../main";
   import type { BetterStoreView } from "../view";
@@ -112,6 +113,42 @@
   const PAGE_SIZE = 60;
   let renderLimit = $state(PAGE_SIZE);
   let shown = $derived(visible.slice(0, renderLimit));
+
+  // With a token linked (5,000 req/h), fetch star counts for the cards on
+  // screen — one request per repo, session-cached. Anonymous browsing stays
+  // API-free so the 60/hour limit is saved for the detail pane.
+  const cardStars = new SvelteMap<string, number>();
+  const requestedStars = new Set<string>();
+  let starsHalted = false;
+
+  let starsEnabled = $derived.by(() => {
+    void settingsTick;
+    void tokenTick;
+    return plugin.settings.showCardStars && plugin.service.hasGithubToken();
+  });
+
+  $effect(() => {
+    const targets = starsEnabled && layout === "grid" && tab !== "installed" ? shown : [];
+    untrack(() => void prefetchStars(targets));
+  });
+
+  async function prefetchStars(targets: PluginEntry[]): Promise<void> {
+    if (starsHalted) return;
+    const queue = targets.filter((e) => !requestedStars.has(e.id));
+    for (const e of queue) requestedStars.add(e.id);
+    await Promise.all(
+      Array.from({ length: 4 }, async () => {
+        let entry: PluginEntry | undefined;
+        while (!starsHalted && (entry = queue.shift())) {
+          try {
+            cardStars.set(entry.id, (await plugin.service.getRepoStats(entry.repo)).stars);
+          } catch {
+            starsHalted = true; // rate-limited or offline — stop for this session
+          }
+        }
+      })
+    );
+  }
 
   let layout = $state<"grid" | "tree">(plugin.settings.ui.layout);
 
@@ -285,6 +322,9 @@
     });
     const unsubscribeDetail = plugin.registerDetailListener((id) => showDetail(id));
     const unsubscribeToken = plugin.registerTokenListener(() => {
+      // A fresh token means a fresh service cache and a fresh quota.
+      requestedStars.clear();
+      starsHalted = false;
       tokenTick += 1;
     });
     const onEscape = (e: KeyboardEvent) => {
@@ -417,6 +457,7 @@
                 selected={selected?.id === entry.id}
                 starred={favoriteIds.has(entry.id)}
                 isNew={showNewBadges && newIds.has(entry.id)}
+                stars={cardStars.get(entry.id)}
                 onSelect={() => (selected = entry)}
                 onToggleStar={() => void toggleFavorite(entry.id)}
                 onIgnore={(e) => openIgnoreMenu(e, entry)}

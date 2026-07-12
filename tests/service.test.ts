@@ -164,6 +164,37 @@ describe("enrichment", () => {
   });
 });
 
+describe("repo stats", () => {
+  it("fetches a star count with a single request and caches it for the session", async () => {
+    io.responses.set("https://api.github.com/repos/a/b", JSON.stringify({ stargazers_count: 42, open_issues_count: 7 }));
+    expect(await service.getRepoStats("a/b")).toEqual({ stars: 42 });
+    expect(io.fetchLog).toEqual(["https://api.github.com/repos/a/b"]);
+    io.fetchLog = [];
+    await service.getRepoStats("a/b");
+    expect(io.fetchLog).toEqual([]);
+  });
+
+  it("reuses already-fetched enrichment instead of refetching", async () => {
+    io.responses.set("https://api.github.com/repos/a/b", JSON.stringify({ stargazers_count: 42, open_issues_count: 7 }));
+    io.responses.set("https://api.github.com/repos/a/b/releases?per_page=10", JSON.stringify([]));
+    await service.getEnrichment("a/b");
+    io.fetchLog = [];
+    expect(await service.getRepoStats("a/b")).toEqual({ stars: 42 });
+    expect(io.fetchLog).toEqual([]);
+  });
+
+  it("maps rate-limit failures to RateLimitError", async () => {
+    io.failures.set("https://api.github.com/repos/a/b", "HTTP 403 for url");
+    await expect(service.getRepoStats("a/b")).rejects.toThrow(RateLimitError);
+  });
+
+  it("hasGithubToken reflects whether requests carry a token", () => {
+    expect(service.hasGithubToken()).toBe(false);
+    const withToken = new DataService(io, "p", { ttlMs: HOUR, githubToken: "t" });
+    expect(withToken.hasGithubToken()).toBe(true);
+  });
+});
+
 describe("getReadme / getLatestVersion", () => {
   it("fetches and memory-caches READMEs", async () => {
     io.responses.set("https://raw.githubusercontent.com/a/b/HEAD/README.md", "# Hello");

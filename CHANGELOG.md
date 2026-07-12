@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.11] - 2026-07-12
+
+### Added
+- **GitHub stars on cards** — with a token linked, browse cards show star counts, fetched only for the cards actually on screen (one API request per plugin, cached for the session, halting gracefully if rate-limited). Without a token nothing is fetched, keeping anonymous browsing API-free. Togglable in settings.
+
 ## [0.3.10] - 2026-07-12
 
 ### Added
@@ -185,6 +190,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.11]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.11
 [0.3.10]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.10
 [0.3.9]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.9
 [0.3.8]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.8

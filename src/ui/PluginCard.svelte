@@ -9,6 +9,7 @@
     selected,
     starred,
     isNew,
+    stars,
     onSelect,
     onToggleStar,
     onIgnore,
@@ -18,6 +19,8 @@
     selected: boolean;
     starred: boolean;
     isNew: boolean;
+    /** GitHub star count; undefined while unknown (no token or still loading). */
+    stars?: number;
     onSelect: () => void;
     onToggleStar: () => void;
     onIgnore: (e: MouseEvent) => void;
@@ -59,6 +62,7 @@
   </div>
   <div class="bs-card-meta">
     <span title="Downloads"><Icon name="download" />{formatCount(entry.downloads)}</span>
+    {#if stars != null}<span title="GitHub stars"><Icon name="star" />{formatCount(stars)}</span>{/if}
     <span>{entry.author}</span>
     <span>{formatAge(entry.updated, Date.now())}</span>
   </div>

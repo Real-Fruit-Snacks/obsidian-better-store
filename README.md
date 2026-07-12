@@ -81,6 +81,7 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 | Open the store in | Tab | Tab, split, or a new window (desktop-only; falls back to a tab on mobile). |
 | Hide installed by default | Off | Start browsing with installed plugins hidden. |
 | Show "New" badges | On | Highlight plugins that entered the registry in the last 14 days. |
+| Show GitHub stars on cards | On | With a token linked, fetches star counts for the cards on screen (one request per plugin, session-cached). Stays inactive without a token so the anonymous 60/hr limit is saved for the detail pane. |
 | Track recently viewed | On | Ranks recently opened plugins first in quick-jump search. |
 | Detail pane toggles | On | Maintenance health chip, similar plugins, download history chart — each individually togglable. |
 | Profiles / Filter presets | — | Review and delete saved profiles and presets. |
@@ -143,7 +144,7 @@ npm install
 npm run dev            # watch build
 npm run check          # TypeScript type check
 npm run check:svelte   # Svelte component type check
-npm test               # unit tests (90)
+npm test               # unit tests (99)
 npm run build          # production build + bundle verification
 ```
 

@@ -51,6 +51,7 @@ export interface Enrichment {
 export class DataService {
   private readmes = new Map<string, string>();
   private enrichments = new Map<string, Enrichment>();
+  private repoStars = new Map<string, number>();
 
   constructor(
     private io: ServiceIO,
@@ -131,6 +132,26 @@ export class DataService {
     const known = await this.readJson<KnownIds>("known.json");
     if (known == null || typeof known.firstSeen !== "object") return new Set();
     return newIdsWithin(known, days, this.io.now());
+  }
+
+  /** True when requests carry a GitHub token (raised rate limit). */
+  hasGithubToken(): boolean {
+    return Boolean(this.opts.githubToken);
+  }
+
+  /** Star count only — a single API call, cheap enough for card-level display. */
+  async getRepoStats(repo: string): Promise<{ stars: number }> {
+    const hit = this.repoStars.get(repo);
+    if (hit != null) return { stars: hit };
+    const enriched = this.enrichments.get(repo);
+    if (enriched) {
+      this.repoStars.set(repo, enriched.stars);
+      return { stars: enriched.stars };
+    }
+    const raw = await this.githubFetch(`https://api.github.com/repos/${repo}`);
+    const stars = (JSON.parse(raw) as { stargazers_count?: number }).stargazers_count ?? 0;
+    this.repoStars.set(repo, stars);
+    return { stars };
   }
 
   private githubHeaders(): Record<string, string> | undefined {
