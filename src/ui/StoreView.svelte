@@ -5,6 +5,8 @@
   import type { PluginEntry } from "../data/types";
   import { EMPTY_FILTER, filterPlugins, type FilterState } from "../data/filter";
   import { getInstalledIds, type TabId } from "./store-context";
+  import FilterSidebar from "./FilterSidebar.svelte";
+  import PluginCard from "./PluginCard.svelte";
 
   let { plugin, view }: { plugin: BetterStorePlugin; view: BetterStoreView } = $props();
 
@@ -61,6 +63,14 @@
     }
   }
 
+  async function ignorePlugin(id: string): Promise<void> {
+    if (!plugin.settings.ignoredPlugins.includes(id)) {
+      plugin.settings.ignoredPlugins = [...plugin.settings.ignoredPlugins, id];
+      await plugin.saveSettings();
+    }
+    if (selected?.id === id) selected = null;
+  }
+
   onMount(() => {
     void load();
     return plugin.registerSettingsListener(() => {
@@ -106,10 +116,20 @@
     <div class="bs-status">Installed view coming in a later task.</div>
   {:else}
     <div class="bs-body">
-      <!-- sidebar mounts here (Task 10) -->
+      <FilterSidebar {filters} showSort={tab === "all"} onChange={(next) => (filters = next)} />
       <main class="bs-main">
-        <!-- grid mounts here (Task 10) -->
-        <div class="bs-status">{visible.length} plugins match.</div>
+        <div class="bs-count">{visible.length} plugins</div>
+        <div class="bs-grid">
+          {#each visible as entry (entry.id)}
+            <PluginCard
+              {entry}
+              installed={installedIds.has(entry.id)}
+              selected={selected?.id === entry.id}
+              onSelect={() => (selected = entry)}
+              onIgnore={() => void ignorePlugin(entry.id)}
+            />
+          {/each}
+        </div>
       </main>
       <!-- detail pane mounts here (Task 11) -->
     </div>
