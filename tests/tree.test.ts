@@ -115,9 +115,30 @@ describe("buildTree — stars grouping", () => {
       entry({ id: "mid", repo: "o/mid", downloads: 1 }),
       entry({ id: "unscanned", repo: "o/unscanned", downloads: 1 }),
     ];
-    const repoStats = { "o/big": { stars: 12_000, openIssues: 3 }, "o/mid": { stars: 250, openIssues: 40 } };
+    const repoStats = {
+      "o/big": { stars: 12_000, openIssues: 3, createdAt: 0 },
+      "o/mid": { stars: 250, openIssues: 40, createdAt: 0 },
+    };
     const tree = buildTree(entries, "stars", { now: NOW, trendingDeltas: {}, repoStats });
     expect(tree.groups.map((g) => g.label)).toEqual(["10k+ stars", "100+ stars", "Not scanned yet"]);
     expect(tree.groups[2].entries.map((e) => e.id)).toEqual(["unscanned"]);
+  });
+});
+
+describe("buildTree — recently added grouping", () => {
+  it("buckets by repo creation recency, with unscanned/undated grouped last", () => {
+    const entries = [
+      entry({ id: "new", repo: "o/new", downloads: 1 }),
+      entry({ id: "old", repo: "o/old", downloads: 1 }),
+      entry({ id: "undated", repo: "o/undated", downloads: 1 }),
+    ];
+    const repoStats = {
+      "o/new": { stars: 1, openIssues: 0, createdAt: NOW - 10 * DAY },
+      "o/old": { stars: 1, openIssues: 0, createdAt: NOW - 800 * DAY },
+      "o/undated": { stars: 1, openIssues: 0, createdAt: 0 },
+    };
+    const tree = buildTree(entries, "added", { now: NOW, trendingDeltas: {}, repoStats });
+    expect(tree.groups.map((g) => g.label)).toEqual(["Added this month", "Added over a year ago", "Not scanned yet"]);
+    expect(tree.groups[2].entries.map((e) => e.id)).toEqual(["undated"]);
   });
 });

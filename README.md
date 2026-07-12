@@ -21,9 +21,10 @@ It deliberately does **not** install, update, or remove plugin files itself — 
 ## Features
 
 - **Full workspace view** — a filter sidebar, card grid, and detail pane instead of a cramped modal; opens in a tab, a split, or its own window. Stays open while you work.
-- **Filters & sorting** — search across name/author/description, category chips, "released within" (24h → 1 year), minimum downloads, minimum stars, hide installed; sort by downloads, recency, name, trending, GitHub stars, or open issues.
+- **Filters & sorting** — search across name/author/description, category chips, "updated within" (24h → 1 year), minimum downloads, minimum stars, hide installed; sort by downloads, recency, name, trending, GitHub stars, open issues, or recently added.
 - **Author drill-down** — click any author to see everything they've published.
-- **Full-catalog GitHub scan** — with a token, scan every plugin's stars and open issues into a persistent cache (resumable, cancellable, rate-limit aware) to unlock accurate catalog-wide sorting and filtering by those metrics.
+- **Full-catalog GitHub scan** — with a token, scan every plugin's stars, open issues, and repository creation date into a persistent cache (resumable, cancellable, rate-limit aware) to unlock accurate catalog-wide sorting by those metrics — including a "recently added" view that surfaces genuinely new plugins, not just recently-patched ones.
+- **"New" detection** vs **"recently added"** — the "New only" filter flags plugins that entered the registry since you started using Better Store (exact, but forward-looking); the scanned "recently added" sort uses repo creation date as a catalog-wide proxy for first release.
 - **Heuristic categories** — Tasks, Sync & Backup, AI, Appearance, Editor, Export & Import, Calendar & Time, Data & Queries, Files & Organization, Publishing & Sharing, Integrations. The official registry has no categories, so these are keyword-derived — imperfect by design and easy to refine.
 - **Rich details** — rendered README with images (sanitized), GitHub stars and open issues, recent releases, and funding links, fetched lazily and cached.
 - **Trending** — local download-delta tracking across catalog refreshes. Builds up as you use the plugin; no external service, no telemetry.

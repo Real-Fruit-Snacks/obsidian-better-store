@@ -2,6 +2,8 @@
 export interface RepoStats {
   stars: number;
   openIssues: number;
+  /** GitHub repo creation time (ms epoch); a proxy for the plugin's first release. 0 = unknown. */
+  createdAt: number;
   scannedAt: number;
 }
 

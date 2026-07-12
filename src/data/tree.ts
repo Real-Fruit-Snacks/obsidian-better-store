@@ -16,7 +16,7 @@ export interface TreeModel {
 export interface TreeContext {
   now: number;
   trendingDeltas: Record<string, number>;
-  repoStats: Record<string, { stars: number; openIssues: number }>;
+  repoStats: Record<string, { stars: number; openIssues: number; createdAt: number }>;
 }
 
 const DAY = 86_400_000;
@@ -68,6 +68,13 @@ const ISSUE_BUCKETS = [
   { min: 0, label: "No open issues" },
 ] as const;
 
+const ADDED_BUCKETS = [
+  { maxDays: 30, label: "Added this month" },
+  { maxDays: 90, label: "Added last 3 months" },
+  { maxDays: 365, label: "Added this year" },
+  { maxDays: Infinity, label: "Added over a year ago" },
+] as const;
+
 const NOT_SCANNED = "Not scanned yet";
 
 function labelFor(entry: PluginEntry, sort: SortKey, ctx: TreeContext): string {
@@ -95,6 +102,12 @@ function labelFor(entry: PluginEntry, sort: SortKey, ctx: TreeContext): string {
       const stat = ctx.repoStats[entry.repo];
       return stat == null ? NOT_SCANNED : ISSUE_BUCKETS.find((b) => stat.openIssues >= b.min)!.label;
     }
+    case "added": {
+      const stat = ctx.repoStats[entry.repo];
+      if (stat == null || stat.createdAt === 0) return NOT_SCANNED;
+      const days = (ctx.now - stat.createdAt) / DAY;
+      return ADDED_BUCKETS.find((b) => days <= b.maxDays)!.label;
+    }
   }
 }
 
@@ -112,6 +125,8 @@ function bucketOrder(sort: SortKey): readonly string[] {
       return [...STAR_BUCKETS.map((b) => b.label), NOT_SCANNED];
     case "issues":
       return [...ISSUE_BUCKETS.map((b) => b.label), NOT_SCANNED];
+    case "added":
+      return [...ADDED_BUCKETS.map((b) => b.label), NOT_SCANNED];
   }
 }
 

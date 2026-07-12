@@ -4,7 +4,7 @@ import { pendingRepos, scanCoverage, type RepoStats } from "../src/data/scan";
 const HOUR = 3_600_000;
 const NOW = 1_000_000_000;
 
-const stat = (scannedAt: number): RepoStats => ({ stars: 1, openIssues: 0, scannedAt });
+const stat = (scannedAt: number): RepoStats => ({ stars: 1, openIssues: 0, createdAt: 0, scannedAt });
 
 describe("pendingRepos", () => {
   it("returns every repo when nothing is cached", () => {

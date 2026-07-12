@@ -118,7 +118,10 @@ describe("enrichment", () => {
   });
 
   it("parses repo, releases, and manifest data", async () => {
-    io.responses.set("https://api.github.com/repos/a/b", JSON.stringify({ stargazers_count: 42, open_issues_count: 7 }));
+    io.responses.set(
+      "https://api.github.com/repos/a/b",
+      JSON.stringify({ stargazers_count: 42, open_issues_count: 7, created_at: "2022-05-01T00:00:00Z" })
+    );
     io.responses.set(
       "https://api.github.com/repos/a/b/releases?per_page=10",
       JSON.stringify([
@@ -149,6 +152,7 @@ describe("enrichment", () => {
       latestVersion: "1.2.0",
       minAppVersion: "1.6.0",
       fundingUrl: "https://ko-fi.com/x",
+      createdAt: Date.parse("2022-05-01T00:00:00Z"),
     });
   });
 
@@ -165,9 +169,16 @@ describe("enrichment", () => {
 });
 
 describe("repo stats", () => {
-  it("fetches stars + open issues with a single request and caches it", async () => {
-    io.responses.set("https://api.github.com/repos/a/b", JSON.stringify({ stargazers_count: 42, open_issues_count: 7 }));
-    expect(await service.getRepoStats("a/b")).toMatchObject({ stars: 42, openIssues: 7 });
+  it("fetches stars + open issues + created date with a single request and caches it", async () => {
+    io.responses.set(
+      "https://api.github.com/repos/a/b",
+      JSON.stringify({ stargazers_count: 42, open_issues_count: 7, created_at: "2021-03-04T00:00:00Z" })
+    );
+    expect(await service.getRepoStats("a/b")).toMatchObject({
+      stars: 42,
+      openIssues: 7,
+      createdAt: Date.parse("2021-03-04T00:00:00Z"),
+    });
     expect(io.fetchLog).toEqual(["https://api.github.com/repos/a/b"]);
     io.fetchLog = [];
     await service.getRepoStats("a/b");

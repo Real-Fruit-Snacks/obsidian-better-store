@@ -33,8 +33,8 @@
   let settingsTick = $state(0);
   /** Bumped when a GitHub token is linked so the detail pane re-fetches. */
   let tokenTick = $state(0);
-  /** Scanned GitHub stats keyed by repo; powers stars/issues sorts and filters. */
-  let repoStats = $state<Record<string, { stars: number; openIssues: number }>>({});
+  /** Scanned GitHub stats keyed by repo; powers stars/issues/added sorts and filters. */
+  let repoStats = $state<Record<string, { stars: number; openIssues: number; createdAt: number }>>({});
   let scanState = $state(plugin.scanState);
 
   let filters = $state<FilterState>({

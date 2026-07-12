@@ -4,6 +4,17 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.18] - 2026-07-12
+
+### Added
+- **Honest "recently added" signal.** The GitHub scan now also records each plugin's **repository creation date** (a proxy for when it was first released), enabling a **"Recently added (scanned)"** sort and matching tree folders. This is distinct from "recently updated": it surfaces genuinely new plugins rather than old ones that just shipped a patch.
+
+### Changed
+- Renamed the **"Released within" filter to "Updated within"** — it always filtered on a plugin's last-version date (the only per-plugin timestamp the catalog carries), so the old label wrongly implied it found brand-new plugins. The behaviour is unchanged; only the (now accurate) name is.
+
+### Notes
+- A plugin's true store-debut date isn't published in Obsidian's registry data, so "recently added" uses the repo's creation date as the closest reliable proxy. The **"New" badge / "New only" filter** remains the exact "new to the registry since you started using Better Store" signal.
+
 ## [0.3.17] - 2026-07-12
 
 ### Changed
@@ -229,6 +240,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.18]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.18
 [0.3.17]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.17
 [0.3.16]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.16
 [0.3.15]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.15

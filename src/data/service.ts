@@ -47,6 +47,15 @@ export interface Enrichment {
   /** Minimum Obsidian version from the plugin's manifest, if declared. */
   minAppVersion: string | null;
   fundingUrl: string | null;
+  /** GitHub repo creation time (ms epoch); a proxy for the plugin's first release. 0 = unknown. */
+  createdAt: number;
+}
+
+/** Parse a GitHub ISO timestamp to ms epoch, or 0 when absent/unparseable. */
+function parseTimestamp(value: unknown): number {
+  if (typeof value !== "string") return 0;
+  const ms = Date.parse(value);
+  return Number.isNaN(ms) ? 0 : ms;
 }
 
 export class DataService {
@@ -176,15 +185,21 @@ export class DataService {
     if (hit != null) return hit;
     const enriched = this.enrichments.get(repo);
     if (enriched) {
-      const stats: RepoStats = { stars: enriched.stars, openIssues: enriched.openIssues, scannedAt: this.io.now() };
+      const stats: RepoStats = {
+        stars: enriched.stars,
+        openIssues: enriched.openIssues,
+        createdAt: enriched.createdAt,
+        scannedAt: this.io.now(),
+      };
       cache.set(repo, stats);
       return stats;
     }
     const raw = await this.githubFetch(`https://api.github.com/repos/${repo}`);
-    const data = JSON.parse(raw) as { stargazers_count?: number; open_issues_count?: number };
+    const data = JSON.parse(raw) as { stargazers_count?: number; open_issues_count?: number; created_at?: string };
     const stats: RepoStats = {
       stars: data.stargazers_count ?? 0,
       openIssues: data.open_issues_count ?? 0,
+      createdAt: parseTimestamp(data.created_at),
       scannedAt: this.io.now(),
     };
     cache.set(repo, stats);
@@ -302,7 +317,11 @@ export class DataService {
         .catch(() => null),
     ]);
 
-    const repoData = JSON.parse(repoRaw) as { stargazers_count?: number; open_issues_count?: number };
+    const repoData = JSON.parse(repoRaw) as {
+      stargazers_count?: number;
+      open_issues_count?: number;
+      created_at?: string;
+    };
     type RawRelease = { tag_name?: string; published_at?: string; html_url?: string; body?: string };
     let releasesData: RawRelease[];
     try {
@@ -334,6 +353,7 @@ export class DataService {
         typeof manifest.fundingUrl === "string" && /^https?:\/\//i.test(manifest.fundingUrl)
           ? manifest.fundingUrl
           : null,
+      createdAt: parseTimestamp(repoData.created_at),
     };
     this.enrichments.set(repo, enrichment);
     return enrichment;

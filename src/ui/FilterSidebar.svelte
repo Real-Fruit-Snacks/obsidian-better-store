@@ -31,9 +31,10 @@
     { key: "trending", label: "Trending" },
     { key: "stars", label: "GitHub stars (scanned)" },
     { key: "issues", label: "Open issues (scanned)" },
+    { key: "added", label: "Recently added (scanned)" },
   ];
 
-  const RELEASED_OPTIONS: { value: number | null; label: string }[] = [
+  const UPDATED_OPTIONS: { value: number | null; label: string }[] = [
     { value: null, label: "Any time" },
     { value: 1, label: "Last 24 hours" },
     { value: 7, label: "Last 7 days" },
@@ -99,16 +100,16 @@
   {/if}
 
   <label class="bs-field">
-    <span class="bs-field-label">Released within</span>
+    <span class="bs-field-label">Updated within</span>
     <select
       class="dropdown"
-      value={String(filters.releasedWithinDays)}
+      value={String(filters.updatedWithinDays)}
       onchange={(e) => {
         const v = e.currentTarget.value;
-        onChange({ ...filters, releasedWithinDays: v === "null" ? null : Number(v) });
+        onChange({ ...filters, updatedWithinDays: v === "null" ? null : Number(v) });
       }}
     >
-      {#each RELEASED_OPTIONS as o (String(o.value))}<option value={String(o.value)}>{o.label}</option>{/each}
+      {#each UPDATED_OPTIONS as o (String(o.value))}<option value={String(o.value)}>{o.label}</option>{/each}
     </select>
   </label>
 

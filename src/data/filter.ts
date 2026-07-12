@@ -1,14 +1,14 @@
 import type { PluginEntry } from "./types";
 
-export type SortKey = "downloads" | "updated" | "name" | "trending" | "stars" | "issues";
+export type SortKey = "downloads" | "updated" | "name" | "trending" | "stars" | "issues" | "added";
 
 export interface FilterState {
   query: string;
   /** Selected categories; empty means "all". Plugins matching ANY selected category pass. */
   categories: string[];
   sort: SortKey;
-  /** null = no limit. Filters on the plugin's last-release timestamp. */
-  releasedWithinDays: number | null;
+  /** null = no limit. Filters on the plugin's last-version (update) timestamp. */
+  updatedWithinDays: number | null;
   minDownloads: number;
   /** Minimum GitHub stars (needs scanned data; unscanned plugins count as 0). */
   minStars: number;
@@ -24,6 +24,8 @@ export interface FilterState {
 export interface RepoStat {
   stars: number;
   openIssues: number;
+  /** GitHub repo creation time (ms epoch); a proxy for when the plugin was first released. 0 = unknown. */
+  createdAt: number;
 }
 
 export interface FilterContext {
@@ -45,7 +47,7 @@ export const EMPTY_FILTER: FilterState = {
   query: "",
   categories: [],
   sort: "downloads",
-  releasedWithinDays: null,
+  updatedWithinDays: null,
   minDownloads: 0,
   minStars: 0,
   hideInstalled: false,
@@ -58,9 +60,10 @@ const DAY_MS = 86_400_000;
 
 export function filterPlugins(entries: PluginEntry[], state: FilterState, ctx: FilterContext): PluginEntry[] {
   const q = state.query.trim().toLowerCase();
-  const cutoff = state.releasedWithinDays == null ? null : ctx.now - state.releasedWithinDays * DAY_MS;
+  const cutoff = state.updatedWithinDays == null ? null : ctx.now - state.updatedWithinDays * DAY_MS;
   const stars = (e: PluginEntry): number => ctx.repoStats[e.repo]?.stars ?? -1;
   const issues = (e: PluginEntry): number => ctx.repoStats[e.repo]?.openIssues ?? -1;
+  const created = (e: PluginEntry): number => ctx.repoStats[e.repo]?.createdAt ?? -1;
 
   const filtered = entries.filter((e) => {
     if (ctx.ignoredIds.has(e.id)) return false;
@@ -90,9 +93,10 @@ export function filterPlugins(entries: PluginEntry[], state: FilterState, ctx: F
     updated: (a, b) => b.updated - a.updated,
     name: (a, b) => a.name.localeCompare(b.name),
     trending: (a, b) => (ctx.trendingDeltas[b.id] ?? 0) - (ctx.trendingDeltas[a.id] ?? 0),
-    // Unscanned plugins (-1) sort to the bottom of a stars/issues sort.
+    // Unscanned plugins (-1) sort to the bottom of a stars/issues/added sort.
     stars: (a, b) => stars(b) - stars(a),
     issues: (a, b) => issues(b) - issues(a),
+    added: (a, b) => created(b) - created(a),
   };
 
   return filtered.sort(comparators[state.sort]);
