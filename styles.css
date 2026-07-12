@@ -1,1 +1,78 @@
-/* Better Store — global styles. Populated in UI tasks. */
+/* Better Store — global styles. Component-scoped styles live in the Svelte files. */
+
+.better-store {
+  padding: 0;
+  overflow: hidden;
+}
+
+.bs-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.bs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.bs-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.bs-tab {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 6px 10px;
+  border-radius: var(--radius-s);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.bs-tab:hover {
+  background: var(--background-modifier-hover);
+}
+
+.bs-tab-active {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+  font-weight: 600;
+}
+
+.bs-refresh {
+  cursor: pointer;
+}
+
+.bs-banner {
+  padding: 6px 12px;
+  background: var(--background-modifier-error-hover, var(--background-secondary));
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.bs-status {
+  padding: 24px;
+  color: var(--text-muted);
+}
+
+.bs-error {
+  color: var(--text-error);
+}
+
+.bs-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.bs-main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}

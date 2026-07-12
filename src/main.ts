@@ -1,6 +1,7 @@
 import { Plugin, requestUrl } from "obsidian";
 import { DataService, type ServiceIO } from "./data/service";
 import { BetterStoreSettingTab, DEFAULT_SETTINGS, type BetterStoreSettings } from "./settings";
+import { BetterStoreView, VIEW_TYPE_BETTER_STORE } from "./view";
 
 export default class BetterStorePlugin extends Plugin {
   settings: BetterStoreSettings = DEFAULT_SETTINGS;
@@ -11,7 +12,16 @@ export default class BetterStorePlugin extends Plugin {
     await this.loadSettings();
     this.service = this.createService();
     this.addSettingTab(new BetterStoreSettingTab(this.app, this));
-    // View registration, ribbon icon, and command are added in the view task.
+    this.registerView(VIEW_TYPE_BETTER_STORE, (leaf) => new BetterStoreView(leaf, this));
+    this.addRibbonIcon("store", "Open Better Store", () => void this.activateView());
+    this.addCommand({ id: "open", name: "Open store", callback: () => void this.activateView() });
+  }
+
+  async activateView(): Promise<void> {
+    const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_BETTER_STORE)[0];
+    const leaf = existing ?? this.app.workspace.getLeaf("tab");
+    await leaf.setViewState({ type: VIEW_TYPE_BETTER_STORE, active: true });
+    this.app.workspace.revealLeaf(leaf);
   }
 
   createService(): DataService {
