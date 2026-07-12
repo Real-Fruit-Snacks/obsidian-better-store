@@ -342,7 +342,10 @@ export default class BetterStorePlugin extends Plugin {
    * incremental, so a paused or cancelled scan continues where it left off.
    */
   async startCatalogScan(): Promise<void> {
-    if (this.scanState.running) return;
+    if (this.scanState.running) {
+      new Notice("Better Store: a catalog scan is already running.");
+      return;
+    }
     if (!this.service.hasGithubToken()) {
       new Notice("Better Store: link a GitHub token in settings before scanning the catalog.");
       return;
@@ -354,6 +357,9 @@ export default class BetterStorePlugin extends Plugin {
       new Notice("Better Store: could not load the catalog to scan.");
       return;
     }
+    // The header shows live progress, but a scan can be started from settings
+    // where that isn't visible — confirm it began.
+    new Notice("Better Store: catalog scan started. Progress and a Cancel button are in the store header.");
     this.scanCancelled = false;
     this.scanState = { running: true, done: 0, total: 0, rateLimited: false };
     this.notifyScan();

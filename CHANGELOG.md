@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.17] - 2026-07-12
+
+### Changed
+- Starting a catalog scan now shows a confirmation notice ("catalog scan started…"), so when you launch it from the settings tab — where the header progress bar isn't visible — you get immediate feedback. Clicking scan while one is already running says so instead of doing nothing.
+
 ## [0.3.16] - 2026-07-12
 
 ### Changed
@@ -224,6 +229,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.17]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.17
 [0.3.16]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.16
 [0.3.15]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.15
 [0.3.14]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.14
