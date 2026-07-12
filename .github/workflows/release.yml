@@ -26,6 +26,9 @@ jobs:
           # Obsidian install zip: unpack into .obsidian/plugins/
           mkdir -p dist/better-store
           cp main.js manifest.json styles.css versions.json dist/better-store/
+
+          # GitHub rejects dotfile asset names, so upload under a plain name.
+          cp .gitlab-ci.yml dist/gitlab-ci.yml
           (cd dist && zip -r "better-store-${GITHUB_REF_NAME}.zip" better-store)
 
           # Offline bundle: full source + prebuilt main.js + GitLab CI,
@@ -43,6 +46,6 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             --title "Better Store $GITHUB_REF_NAME" \
             --generate-notes \
-            main.js manifest.json styles.css versions.json .gitlab-ci.yml \
+            main.js manifest.json styles.css versions.json dist/gitlab-ci.yml \
             "dist/better-store-${GITHUB_REF_NAME}.zip" \
             "dist/better-store-${GITHUB_REF_NAME}-offline-bundle.zip"
