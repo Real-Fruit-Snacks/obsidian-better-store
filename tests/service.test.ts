@@ -204,6 +204,17 @@ describe("repo stats", () => {
     const withToken = new DataService(io, "p", { ttlMs: HOUR, githubToken: "t" });
     expect(withToken.hasGithubToken()).toBe(true);
   });
+
+  it("normalizes a legacy repostats cache that predates createdAt", async () => {
+    // An entry written before createdAt existed: no createdAt, has a scannedAt.
+    io.files.set(
+      "plugins/better-store/repostats.json",
+      JSON.stringify({ stats: { "a/legacy": { stars: 42, openIssues: 3, scannedAt: 111 } } })
+    );
+    const all = await service.getAllRepoStats();
+    // createdAt backfilled to 0, and scannedAt reset so it re-scans (backfilling the date).
+    expect(all["a/legacy"]).toEqual({ stars: 42, openIssues: 3, createdAt: 0, scannedAt: 0 });
+  });
 });
 
 describe("scanRepos", () => {

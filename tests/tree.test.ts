@@ -141,4 +141,12 @@ describe("buildTree — recently added grouping", () => {
     expect(tree.groups.map((g) => g.label)).toEqual(["Added this month", "Added over a year ago", "Not scanned yet"]);
     expect(tree.groups[2].entries.map((e) => e.id)).toEqual(["undated"]);
   });
+
+  it("does not crash when a cached stat predates createdAt (undefined)", () => {
+    const entries = [entry({ id: "legacy", repo: "o/legacy", downloads: 1 })];
+    // Simulate an old cache entry with no createdAt (as loaded from disk).
+    const repoStats = { "o/legacy": { stars: 100, openIssues: 1 } as unknown as { stars: number; openIssues: number; createdAt: number } };
+    const tree = buildTree(entries, "added", { now: NOW, trendingDeltas: {}, repoStats });
+    expect(tree.groups.map((g) => g.label)).toEqual(["Not scanned yet"]);
+  });
 });

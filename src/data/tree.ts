@@ -96,15 +96,20 @@ function labelFor(entry: PluginEntry, sort: SortKey, ctx: TreeContext): string {
     }
     case "stars": {
       const stat = ctx.repoStats[entry.repo];
-      return stat == null ? NOT_SCANNED : STAR_BUCKETS.find((b) => stat.stars >= b.min)!.label;
+      if (stat == null) return NOT_SCANNED;
+      const stars = typeof stat.stars === "number" ? stat.stars : 0;
+      return STAR_BUCKETS.find((b) => stars >= b.min)!.label;
     }
     case "issues": {
       const stat = ctx.repoStats[entry.repo];
-      return stat == null ? NOT_SCANNED : ISSUE_BUCKETS.find((b) => stat.openIssues >= b.min)!.label;
+      if (stat == null) return NOT_SCANNED;
+      const issues = typeof stat.openIssues === "number" ? stat.openIssues : 0;
+      return ISSUE_BUCKETS.find((b) => issues >= b.min)!.label;
     }
     case "added": {
       const stat = ctx.repoStats[entry.repo];
-      if (stat == null || stat.createdAt === 0) return NOT_SCANNED;
+      // Guard missing/0/NaN createdAt (e.g. a cache written before this field existed).
+      if (stat == null || !stat.createdAt) return NOT_SCANNED;
       const days = (ctx.now - stat.createdAt) / DAY;
       return ADDED_BUCKETS.find((b) => days <= b.maxDays)!.label;
     }

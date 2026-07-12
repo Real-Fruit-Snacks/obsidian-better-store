@@ -168,8 +168,23 @@ export class DataService {
 
   private async ensureRepoStats(): Promise<Map<string, RepoStats>> {
     if (this.repoStatsCache == null) {
-      const stored = await this.readJson<{ stats?: Record<string, RepoStats> }>("repostats.json");
-      this.repoStatsCache = new Map(Object.entries(stored?.stats ?? {}));
+      const stored = await this.readJson<{ stats?: Record<string, Partial<RepoStats>> }>("repostats.json");
+      const entries = Object.entries(stored?.stats ?? {}).map<[string, RepoStats]>(([repo, s]) => {
+        // Caches written before createdAt existed lack that field; normalize so
+        // sorts never see undefined, and force such entries to rescan (scannedAt 0)
+        // so the creation date backfills on the next scan.
+        const hasCreated = typeof s?.createdAt === "number";
+        return [
+          repo,
+          {
+            stars: typeof s?.stars === "number" ? s.stars : 0,
+            openIssues: typeof s?.openIssues === "number" ? s.openIssues : 0,
+            createdAt: hasCreated ? (s.createdAt as number) : 0,
+            scannedAt: hasCreated && typeof s?.scannedAt === "number" ? s.scannedAt : 0,
+          },
+        ];
+      });
+      this.repoStatsCache = new Map(entries);
     }
     return this.repoStatsCache;
   }
