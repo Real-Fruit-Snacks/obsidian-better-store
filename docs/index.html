@@ -154,7 +154,8 @@ footer {
     <h1>BETTER <span class="p">STORE</span></h1>
     <p class="tag">The Obsidian community plugin browser, polished — filters, categories, rich previews, trending, and an installed-plugins dashboard.</p>
     <div class="cta-row">
-      <a class="btn btn-primary" href="https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/latest">Download latest release</a>
+      <a class="btn btn-primary" href="https://community.obsidian.md/plugins/better-store">Install from Community Plugins</a>
+      <a class="btn btn-quiet" href="https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/latest">Latest release</a>
       <a class="btn btn-quiet" href="https://github.com/Real-Fruit-Snacks/obsidian-better-store">View source</a>
     </div>
   </div>
@@ -178,14 +179,15 @@ footer {
 
   <section id="install">
     <span class="manifest">// Installation</span>
+    <h3>From Community Plugins (recommended)</h3>
+    <pre><span class="a">&#10095;</span> Settings &#8594; Community plugins &#8594; Browse &#8594; "Better Store" &#8594; Install
+<span class="c"># or view the listing: community.obsidian.md/plugins/better-store</span></pre>
     <h3>Manual install</h3>
     <pre><span class="c"># 1. download main.js, manifest.json, styles.css from the latest release</span>
 <span class="c"># 2. place them in your vault:</span>
 <span class="a">&#10095;</span> YourVault/.obsidian/plugins/better-store/
 <span class="c"># 3. Settings &#8594; Community plugins &#8594; enable "Better Store"</span>
 <span class="c"># assets are provenance-attested: gh attestation verify main.js -R Real-Fruit-Snacks/obsidian-better-store</span></pre>
-    <h3>Via BRAT</h3>
-    <pre><span class="a">&#10095;</span> BRAT: Add beta plugin &#8594; Real-Fruit-Snacks/obsidian-better-store</pre>
     <div class="callout">Better Store never installs, updates, or removes other plugins' files. Install actions hand off to Obsidian's native Community Plugins dialog.</div>
   </section>
 
@@ -198,7 +200,14 @@ footer {
         <tr><td>Cache lifetime</td><td>How long the plugin catalog is cached (default 12 h). Manual refresh in the store header.</td></tr>
         <tr><td>Default sort</td><td>Downloads, recently updated, name, or trending.</td></tr>
         <tr><td>Hide installed</td><td>Start with already-installed plugins hidden.</td></tr>
-        <tr><td>Ignored plugins</td><td>Review and un-ignore anything you've hidden.</td></tr>
+        <tr><td>Show "New" badges</td><td>Highlight plugins that entered the registry within the last 14 days.</td></tr>
+        <tr><td>Track recently viewed</td><td>Ranks plugins you've opened recently first in quick-jump search.</td></tr>
+        <tr><td>Detail pane</td><td>Individual toggles for the maintenance-health chip, similar-plugins row, and download-history sparkline.</td></tr>
+        <tr><td>Updates</td><td>Background update checks (ribbon badge) and the found-updates notice, each togglable.</td></tr>
+        <tr><td>Portability</td><td>Export the installed list as Markdown or JSON; import a list to see what's missing.</td></tr>
+        <tr><td>Profiles</td><td>Review and delete saved enable-sets (created from the Installed tab).</td></tr>
+        <tr><td>Filter presets</td><td>Review and delete saved sidebar filter combinations.</td></tr>
+        <tr><td>Starred / Ignored</td><td>Managed lists for favorites, ignored plugins, ignored authors, and ignored categories.</td></tr>
       </tbody>
     </table>
   </section>

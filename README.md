@@ -6,6 +6,7 @@
 [![Latest release](https://img.shields.io/github/v/release/Real-Fruit-Snacks/obsidian-better-store?style=flat-square&color=63f2ab)](https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/latest)
 [![Obsidian 1.13.0+](https://img.shields.io/badge/Obsidian-1.13.0%2B-6bdcff?style=flat-square)](https://obsidian.md)
 [![CI](https://img.shields.io/github/actions/workflow/status/Real-Fruit-Snacks/obsidian-better-store/ci.yml?style=flat-square&label=CI)](https://github.com/Real-Fruit-Snacks/obsidian-better-store/actions/workflows/ci.yml)
+[![Downloads](https://img.shields.io/badge/dynamic/json?style=flat-square&color=63f2ab&label=downloads&query=%24%5B%22better-store%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)](https://community.obsidian.md/plugins/better-store)
 
 **[Documentation site](https://real-fruit-snacks.github.io/obsidian-better-store/)** · **[Latest release](https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/latest)**
 
@@ -44,6 +45,10 @@ It deliberately does **not** install, update, or remove plugin files itself — 
 
 ## Installation
 
+### From Community Plugins (recommended)
+
+Better Store is in the official directory: Settings → Community plugins → Browse → search **Better Store** → Install. Or open the [community listing](https://community.obsidian.md/plugins/better-store).
+
 ### Manual
 
 1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/latest).
@@ -51,10 +56,6 @@ It deliberately does **not** install, update, or remove plugin files itself — 
 3. Settings → Community plugins → enable **Better Store**.
 
 Release assets carry [GitHub artifact attestations](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations) — verify provenance with `gh attestation verify main.js -R Real-Fruit-Snacks/obsidian-better-store`.
-
-### Via BRAT
-
-Add `Real-Fruit-Snacks/obsidian-better-store` as a beta plugin in [BRAT](https://github.com/TfTHacker/obsidian42-brat).
 
 ## Getting Started
 
