@@ -78,6 +78,7 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 | GitHub token | — | Optional. Raises the GitHub API rate limit (60/hr without) used for stars, issues, and releases. A classic token with **no scopes** is enough. Stored in **Obsidian's secret storage**, not in plugin data — it doesn't travel with `data.json` backups or sync. |
 | Cache lifetime | 12 h | How long the plugin catalog is cached. Manual refresh in the store header. |
 | Default sort | Downloads | Downloads, recently updated, name, or trending. |
+| Open the store in | Tab | Tab, split, or a new window (desktop-only; falls back to a tab on mobile). |
 | Hide installed by default | Off | Start browsing with installed plugins hidden. |
 | Show "New" badges | On | Highlight plugins that entered the registry in the last 14 days. |
 | Track recently viewed | On | Ranks recently opened plugins first in quick-jump search. |

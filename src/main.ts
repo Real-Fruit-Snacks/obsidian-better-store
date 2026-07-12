@@ -1,4 +1,4 @@
-import { Notice, Plugin, requestUrl } from "obsidian";
+import { Notice, Platform, Plugin, requestUrl } from "obsidian";
 import { DataService, type ServiceIO } from "./data/service";
 import { compareVersions } from "./data/versions";
 import { buildExportList, exportJson, exportMarkdown } from "./data/portability";
@@ -162,7 +162,10 @@ export default class BetterStorePlugin extends Plugin {
       await this.app.workspace.revealLeaf(existing);
       return;
     }
-    const leaf = this.app.workspace.getLeaf("tab");
+    // Popout windows are desktop-only; fall back to a tab elsewhere.
+    const location =
+      this.settings.openLocation === "window" && !Platform.isDesktopApp ? "tab" : this.settings.openLocation;
+    const leaf = this.app.workspace.getLeaf(location);
     await leaf.setViewState({ type: VIEW_TYPE_BETTER_STORE, active: true });
     await this.app.workspace.revealLeaf(leaf);
   }

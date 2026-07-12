@@ -20,6 +20,7 @@ export interface FilterPreset {
 export interface BetterStoreSettings {
   cacheTtlHours: number;
   defaultSort: SortKey;
+  openLocation: "tab" | "split" | "window";
   hideInstalledByDefault: boolean;
   ignoredPlugins: string[];
   ignoredAuthors: string[];
@@ -40,6 +41,7 @@ export interface BetterStoreSettings {
 export const DEFAULT_SETTINGS: BetterStoreSettings = {
   cacheTtlHours: 12,
   defaultSort: "downloads",
+  openLocation: "tab",
   hideInstalledByDefault: false,
   ignoredPlugins: [],
   ignoredAuthors: [],
@@ -122,6 +124,16 @@ export class BetterStoreSettingTab extends PluginSettingTab {
           key: "defaultSort",
           options: { downloads: "Downloads", updated: "Recently updated", name: "Name", trending: "Trending" },
           defaultValue: "downloads",
+        },
+      },
+      {
+        name: "Open the store in",
+        desc: "Where the store opens from the ribbon and commands. A new window is desktop-only and falls back to a tab on mobile.",
+        control: {
+          type: "dropdown",
+          key: "openLocation",
+          options: { tab: "A tab", split: "A split", window: "A new window" },
+          defaultValue: "tab",
         },
       },
       {
