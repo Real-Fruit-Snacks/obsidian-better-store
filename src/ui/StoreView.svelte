@@ -116,6 +116,7 @@
         <button
           class="bs-tab"
           class:bs-tab-active={tab === t.id}
+          aria-pressed={tab === t.id}
           onclick={() => { tab = t.id; selected = null; renderLimit = PAGE_SIZE; }}
         >{t.label}</button>
       {/each}

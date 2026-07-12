@@ -39,13 +39,17 @@
   background: var(--background-modifier-hover);
 }
 
-.bs-tab-active {
+/* High specificity + outline so the selected state survives themes that
+   restyle button elements (background alone gets overridden). */
+.bs-root .bs-tabs .bs-tab.bs-tab-active {
   color: var(--text-on-accent);
   background: var(--interactive-accent);
   font-weight: 600;
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 1px;
 }
 
-.bs-tab-active:hover {
+.bs-root .bs-tabs .bs-tab.bs-tab-active:hover {
   background: var(--interactive-accent-hover, var(--interactive-accent));
   color: var(--text-on-accent);
 }
