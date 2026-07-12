@@ -1090,3 +1090,71 @@
 .bs-mute-select {
   font-size: var(--font-ui-small);
 }
+
+/* BRAT beta-plugin panel */
+.bs-brat {
+  margin: 0 12px 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background: var(--background-secondary);
+}
+
+.bs-brat > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.bs-brat-count {
+  background: var(--background-modifier-border);
+  color: var(--text-normal);
+  border-radius: 999px;
+  padding: 0 7px;
+  font-size: var(--font-ui-smaller);
+  letter-spacing: 0;
+}
+
+.bs-brat-body {
+  padding: 4px 12px 12px;
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+}
+
+.bs-brat-body p {
+  margin: 4px 0 10px;
+}
+
+.bs-brat-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.bs-brat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bs-brat-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-smaller);
+}
+
+.bs-brat-empty {
+  font-style: italic;
+}

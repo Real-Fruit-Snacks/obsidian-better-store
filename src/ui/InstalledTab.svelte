@@ -7,7 +7,8 @@
   import type { PluginProfile } from "../data/profiles";
   import { formatAge } from "../data/format";
   import { isUpdateActionable, muteRemaining, MUTE_OPTIONS, type MuteDuration } from "../data/updates";
-  import { getPluginsApi } from "./store-context";
+  import { parseBratPlugins, BRAT_COMMANDS, BRAT_PLUGIN_ID, type BratBetaPlugin } from "../data/brat";
+  import { getPluginsApi, getBratStatus, runCommand } from "./store-context";
   import { NameModal } from "./modals";
   import Icon from "./Icon.svelte";
 
@@ -90,6 +91,29 @@
     prefsTick += 1;
   }
 
+  // BRAT (beta plugin manager) integration — read-only listing plus hand-off to
+  // BRAT's own commands. Better Store never writes BRAT's files.
+  let brat = $state(getBratStatus(plugin.app));
+  let betaPlugins = $state<BratBetaPlugin[]>([]);
+
+  async function loadBrat(): Promise<void> {
+    brat = getBratStatus(plugin.app);
+    betaPlugins = brat.enabled ? parseBratPlugins(await plugin.readBratData()) : [];
+  }
+
+  onMount(() => void loadBrat());
+
+  function runBrat(commandId: string): void {
+    runCommand(plugin.app, commandId);
+    // BRAT commands may open a modal or update in the background; refresh the
+    // list shortly after so newly added/updated betas appear.
+    window.setTimeout(() => void loadBrat(), 1500);
+  }
+
+  function installBrat(): void {
+    window.open(`obsidian://show-plugin?id=${BRAT_PLUGIN_ID}`);
+  }
+
   let lastLatest: Record<string, string | null> = {};
 
   function rebuild(latestVersions: Record<string, string | null>): void {
@@ -121,6 +145,8 @@
         ids.some((id) => !infos.some((i) => i.id === id)) ||
         infos.some((i) => i.enabled !== api.enabledPlugins.has(i.id));
       if (changed) rebuild(lastLatest);
+      const s = getBratStatus(plugin.app);
+      if (s.installed !== brat.installed || s.enabled !== brat.enabled) void loadBrat();
     }, 2000);
     return () => window.clearInterval(poll);
   });
@@ -260,6 +286,40 @@
   {#if toggleError}
     <div class="bs-status bs-error">{toggleError}</div>
   {/if}
+
+  <details class="bs-brat">
+    <summary>
+      <Icon name="flask-conical" />
+      <span>Beta plugins (BRAT)</span>
+      {#if brat.enabled}<span class="bs-brat-count">{betaPlugins.length}</span>{/if}
+    </summary>
+    <div class="bs-brat-body">
+      {#if !brat.installed}
+        <p>BRAT installs and auto-updates plugins straight from GitHub, before they reach the community store. Better Store hands off to BRAT — it never manages beta files itself.</p>
+        <button class="bs-chip" onclick={installBrat}><Icon name="download" />Install BRAT</button>
+      {:else if !brat.enabled}
+        <p>BRAT is installed but disabled. Enable it to manage beta plugins here.</p>
+      {:else}
+        <div class="bs-brat-actions">
+          <button class="bs-chip" onclick={() => runBrat(BRAT_COMMANDS.addBetaPlugin)}><Icon name="plus" />Add beta plugin</button>
+          <button class="bs-chip" onclick={() => runBrat(BRAT_COMMANDS.checkAndUpdate)}><Icon name="refresh-cw" />Check for updates</button>
+          <button class="bs-chip" title="Reload the BRAT list" onclick={() => void loadBrat()}><Icon name="rotate-cw" />Refresh</button>
+        </div>
+        {#if betaPlugins.length === 0}
+          <p class="bs-brat-empty">No beta plugins tracked yet. Use "Add beta plugin" to start testing one from GitHub.</p>
+        {:else}
+          <ul class="bs-brat-list">
+            {#each betaPlugins as bp (bp.repo)}
+              <li>
+                <a href={`https://github.com/${bp.repo}`} target="_blank" rel="noopener">{bp.repo}</a>
+                {#if bp.frozenVersion}<span class="bs-badge">pinned v{bp.frozenVersion}</span>{/if}
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      {/if}
+    </div>
+  </details>
 
   <div class="bs-grid bs-installed-grid">
     {#each visible as info (info.id)}

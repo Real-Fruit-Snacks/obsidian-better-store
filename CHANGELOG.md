@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.13] - 2026-07-12
+
+### Added
+- **BRAT beta-plugin panel** on the Installed tab. When [BRAT](https://github.com/TfTHacker/obsidian42-brat) is installed, it lists the beta plugins BRAT tracks (with pinned versions and repo links) and offers one-click **Add beta plugin** and **Check for updates** actions. Consistent with Better Store's core principle, it only *reads* BRAT's list and hands off to BRAT's own commands — it never writes another plugin's files. If BRAT isn't installed, the panel offers a one-click hand-off to install it.
+
 ## [0.3.12] - 2026-07-12
 
 ### Added
@@ -197,6 +202,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.13]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.13
 [0.3.12]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.12
 [0.3.11]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.11
 [0.3.10]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.10

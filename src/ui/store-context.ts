@@ -1,4 +1,5 @@
 import type { App } from "obsidian";
+import { BRAT_PLUGIN_ID } from "../data/brat";
 
 export type TabId = "all" | "updated" | "trending" | "installed";
 
@@ -18,4 +19,15 @@ export function getPluginsApi(app: App): PluginsApi {
 /** Installed community plugin ids. */
 export function getInstalledIds(app: App): Set<string> {
   return new Set(Object.keys(getPluginsApi(app).manifests));
+}
+
+/** Whether BRAT is present, and whether it's currently enabled (its commands only exist when enabled). */
+export function getBratStatus(app: App): { installed: boolean; enabled: boolean } {
+  const api = getPluginsApi(app);
+  return { installed: BRAT_PLUGIN_ID in api.manifests, enabled: api.enabledPlugins.has(BRAT_PLUGIN_ID) };
+}
+
+/** Run an Obsidian command by id (used to hand off to BRAT's own commands). */
+export function runCommand(app: App, id: string): void {
+  (app as unknown as { commands: { executeCommandById(id: string): boolean } }).commands.executeCommandById(id);
 }

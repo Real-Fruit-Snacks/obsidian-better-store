@@ -3,6 +3,7 @@ import { DataService, type ServiceIO } from "./data/service";
 import { compareVersions } from "./data/versions";
 import { resolveLegacySecret, summarizeTokenCheck } from "./data/token";
 import { isMuted, isUpdateActionable, muteDeadline, type MuteDuration, type UpdatePrefs } from "./data/updates";
+import { BRAT_PLUGIN_ID } from "./data/brat";
 import { buildExportList, exportJson, exportMarkdown } from "./data/portability";
 import { diffProfile, type PluginProfile } from "./data/profiles";
 import { BetterStoreSettingTab, DEFAULT_SETTINGS, type BetterStoreSettings } from "./settings";
@@ -202,6 +203,22 @@ export default class BetterStorePlugin extends Plugin {
     this.settings.muteUpdatesUntil = 0;
     await this.saveSettings();
     await this.checkForUpdates();
+  }
+
+  /**
+   * Read BRAT's own data file (read-only) to list the beta plugins it tracks.
+   * Better Store never writes another plugin's files — beta actions hand off to
+   * BRAT's own commands. Returns null when BRAT hasn't stored anything.
+   */
+  async readBratData(): Promise<unknown> {
+    const path = `${this.app.vault.configDir}/plugins/${BRAT_PLUGIN_ID}/data.json`;
+    try {
+      const adapter = this.app.vault.adapter;
+      if (!(await adapter.exists(path))) return null;
+      return JSON.parse(await adapter.read(path));
+    } catch {
+      return null;
+    }
   }
 
   async activateView(): Promise<void> {

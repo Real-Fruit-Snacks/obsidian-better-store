@@ -26,6 +26,7 @@ It deliberately does **not** install, update, or remove plugin files itself — 
 - **Rich details** — rendered README with images (sanitized), GitHub stars and open issues, recent releases, and funding links, fetched lazily and cached.
 - **Trending** — local download-delta tracking across catalog refreshes. Builds up as you use the plugin; no external service, no telemetry.
 - **Installed dashboard** — current vs. latest version, update badges, enable/disable toggles (with bulk select), "stale" warnings for plugins unmaintained for a year+, changelog links.
+- **BRAT panel** — when [BRAT](https://github.com/TfTHacker/obsidian42-brat) is installed, lists the beta plugins it tracks and offers one-click add / check-for-updates. Better Store only reads BRAT's list and hands off to BRAT's own commands — never touching another plugin's files.
 - **Tree view** — an explorer-style layout with folders derived from the active sort (download tiers, recency, A–Z, trending), a collapsed Stale folder, persistent expansion, and indent guides.
 - **Quick jump** — a fuzzy search command (`Better Store: Search plugins`) that opens any plugin's details from anywhere in Obsidian.
 - **"New" detection** — plugins that entered the registry in the last 14 days get a badge and a "New only" filter (togglable).
@@ -145,7 +146,7 @@ npm install
 npm run dev            # watch build
 npm run check          # TypeScript type check
 npm run check:svelte   # Svelte component type check
-npm test               # unit tests (107)
+npm test               # unit tests (113)
 npm run build          # production build + bundle verification
 ```
 
