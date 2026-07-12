@@ -20,9 +20,26 @@
   let infos = $state<InstalledInfo[]>([]);
   let checking = $state(true);
   let toggleError = $state<string | null>(null);
+  let query = $state("");
+  let updatesOnly = $state(false);
 
   const api = getPluginsApi(plugin.app);
   const byId = $derived(new Map(entries.map((e) => [e.id, e])));
+
+  let updateCount = $derived(infos.filter((i) => i.updateAvailable).length);
+
+  let visible = $derived.by(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = infos.filter(
+      (i) =>
+        (!updatesOnly || i.updateAvailable) &&
+        (q === "" || i.name.toLowerCase().includes(q) || i.id.toLowerCase().includes(q))
+    );
+    // Updates float to the top; everything else stays alphabetical.
+    return filtered.sort(
+      (a, b) => Number(b.updateAvailable) - Number(a.updateAvailable) || a.name.localeCompare(b.name)
+    );
+  });
 
   function rebuild(latestVersions: Record<string, string | null>): void {
     infos = buildInstalledInfo(api.manifests, new Set(api.enabledPlugins), entries, latestVersions, Date.now());
@@ -43,6 +60,7 @@
   });
 
   async function toggle(info: InstalledInfo): Promise<void> {
+    if (info.id === plugin.manifest.id) return;
     toggleError = null;
     try {
       if (info.enabled) await api.disablePluginAndSave(info.id);
@@ -59,56 +77,107 @@
 </script>
 
 <div class="bs-installed">
-  {#if checking}
-    <div class="bs-count">Checking for updates…</div>
-  {:else}
-    <div class="bs-count">
-      {infos.length} installed · {infos.filter((i) => i.updateAvailable).length} updates available
-    </div>
-  {/if}
+  <div class="bs-installed-toolbar">
+    <input
+      type="search"
+      class="bs-installed-search"
+      placeholder="Filter installed plugins…"
+      aria-label="Filter installed plugins"
+      bind:value={query}
+    />
+    <button
+      class="bs-chip"
+      class:bs-chip-active={updatesOnly}
+      onclick={() => (updatesOnly = !updatesOnly)}
+    >
+      Updates{#if !checking}&nbsp;({updateCount}){/if}
+    </button>
+    <span class="bs-installed-summary">
+      {#if checking}
+        Checking for updates…
+      {:else}
+        {infos.length} installed · {updateCount} {updateCount === 1 ? "update" : "updates"} available
+      {/if}
+    </span>
+  </div>
+
   {#if toggleError}
     <div class="bs-status bs-error">{toggleError}</div>
   {/if}
 
-  <table class="bs-installed-table">
-    <thead>
-      <tr><th>Plugin</th><th>Version</th><th>Updated</th><th>Enabled</th><th></th></tr>
-    </thead>
-    <tbody>
-      {#each infos as info (info.id)}
-        <tr>
-          <td>
-            {#if byId.get(info.id)}
-              <button class="bs-link" onclick={() => onSelect(byId.get(info.id) as PluginEntry)}>{info.name}</button>
+  <div class="bs-installed-list">
+    {#each visible as info (info.id)}
+      {@const entry = byId.get(info.id)}
+      <div class="bs-installed-row" class:bs-installed-off={!info.enabled}>
+        <div class="bs-installed-main">
+          <div class="bs-installed-title">
+            {#if entry}
+              <button class="bs-link" onclick={() => onSelect(entry)}>{info.name}</button>
             {:else}
-              {info.name}
+              <span class="bs-installed-name">{info.name}</span>
             {/if}
-            {#if info.abandoned}<span class="bs-badge bs-badge-warn" title="No update in over a year">stale</span>{/if}
-          </td>
-          <td>
-            {info.version}
-            {#if info.updateAvailable}
-              <button class="bs-badge bs-badge-update" title="Open in Community Plugins to update" onclick={() => openNative(info.id)}>
-                <Icon name="arrow-up" />{info.latestVersion}
-              </button>
+            {#if info.abandoned}
+              <span class="bs-badge bs-badge-warn" title="No update in over a year">stale</span>
             {/if}
-          </td>
-          <td>{info.updated != null ? formatAge(info.updated, Date.now()) : "—"}</td>
-          <td>
-            <input
-              type="checkbox"
-              checked={info.enabled}
-              disabled={info.id === plugin.manifest.id}
-              onchange={() => void toggle(info)}
-            />
-          </td>
-          <td>
-            {#if info.repo}
-              <a href={`https://github.com/${info.repo}/releases`} target="_blank" rel="noopener" title="Changelog">changelog</a>
+          </div>
+          <div class="bs-installed-sub">
+            <span>v{info.version}</span>
+            <span>·</span>
+            <span>{info.updated ? `updated ${formatAge(info.updated, Date.now())}` : "not in catalog"}</span>
+            {#if entry}
+              <span>·</span>
+              <span class="bs-installed-desc">{entry.description}</span>
             {/if}
-          </td>
-        </tr>
-      {/each}
-    </tbody>
-  </table>
+          </div>
+        </div>
+
+        {#if info.updateAvailable}
+          <button
+            class="bs-update-btn"
+            title="Open in Community Plugins to update"
+            onclick={() => openNative(info.id)}
+          >
+            <Icon name="arrow-up" />Update to {info.latestVersion}
+          </button>
+        {/if}
+
+        {#if info.repo}
+          <a
+            class="bs-installed-changelog"
+            href={`https://github.com/${info.repo}/releases`}
+            target="_blank"
+            rel="noopener"
+            title="Changelog"
+            aria-label={`Changelog for ${info.name}`}
+          >
+            <Icon name="scroll-text" />
+          </a>
+        {/if}
+
+        <div
+          class="checkbox-container bs-installed-toggle"
+          class:is-enabled={info.enabled}
+          class:bs-toggle-locked={info.id === plugin.manifest.id}
+          role="switch"
+          aria-checked={info.enabled}
+          aria-label={`Enable ${info.name}`}
+          tabindex={info.id === plugin.manifest.id ? -1 : 0}
+          title={info.id === plugin.manifest.id ? "Better Store cannot disable itself" : info.enabled ? "Disable" : "Enable"}
+          onclick={() => void toggle(info)}
+          onkeydown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              void toggle(info);
+            }
+          }}
+        >
+          <input type="checkbox" tabindex="-1" checked={info.enabled} disabled={info.id === plugin.manifest.id} />
+        </div>
+      </div>
+    {:else}
+      <div class="bs-status">
+        {updatesOnly ? "Everything is up to date." : "No installed plugins match."}
+      </div>
+    {/each}
+  </div>
 </div>

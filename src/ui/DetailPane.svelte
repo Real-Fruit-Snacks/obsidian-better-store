@@ -21,6 +21,33 @@
   let enrichError = $state<string | null>(null);
   let readmeLoading = $state(true);
 
+  const WIDTH_KEY = "better-store-detail-width";
+  const MIN_WIDTH = 300;
+  const MAX_WIDTH = 900;
+
+  function loadWidth(): number {
+    const stored = Number(localStorage.getItem(WIDTH_KEY));
+    return stored >= MIN_WIDTH && stored <= MAX_WIDTH ? stored : 380;
+  }
+
+  let width = $state(loadWidth());
+
+  function startResize(e: PointerEvent): void {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = width;
+    const onMove = (ev: PointerEvent) => {
+      width = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth + (startX - ev.clientX)));
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      localStorage.setItem(WIDTH_KEY, String(Math.round(width)));
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
   $effect(() => {
     const current = entry;
     const el = readmeEl;
@@ -63,7 +90,15 @@
   }
 </script>
 
-<aside class="bs-detail">
+<aside class="bs-detail" style={`width:${width}px`}>
+  <div
+    class="bs-detail-resize"
+    role="separator"
+    aria-orientation="vertical"
+    aria-label="Resize details panel"
+    title="Drag to resize"
+    onpointerdown={startResize}
+  ></div>
   <div class="bs-detail-header">
     <div class="bs-detail-title">
       <h3>{entry.name}</h3>
