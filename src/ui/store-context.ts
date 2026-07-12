@@ -2,12 +2,20 @@ import type { App } from "obsidian";
 
 export type TabId = "all" | "updated" | "trending" | "installed";
 
-interface PluginsApi {
-  manifests: Record<string, unknown>;
+/** Shape of Obsidian's internal (untyped) `app.plugins` API. Documented risk in the spec:
+ * widely used by other plugins, but could change in an Obsidian update. */
+export interface PluginsApi {
+  manifests: Record<string, { id: string; name: string; version: string }>;
+  enabledPlugins: Set<string>;
+  enablePluginAndSave(id: string): Promise<void>;
+  disablePluginAndSave(id: string): Promise<void>;
 }
 
-/** Installed community plugin ids. Uses the internal `app.plugins` API (untyped). */
+export function getPluginsApi(app: App): PluginsApi {
+  return (app as unknown as { plugins: PluginsApi }).plugins;
+}
+
+/** Installed community plugin ids. */
 export function getInstalledIds(app: App): Set<string> {
-  const plugins = (app as unknown as { plugins?: PluginsApi }).plugins;
-  return new Set(Object.keys(plugins?.manifests ?? {}));
+  return new Set(Object.keys(getPluginsApi(app).manifests));
 }

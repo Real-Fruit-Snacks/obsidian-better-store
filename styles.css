@@ -316,3 +316,54 @@
 .bs-readme img {
   max-width: 100%;
 }
+
+/* Installed tab */
+.bs-installed {
+  padding: 4px 12px 12px;
+}
+
+.bs-installed-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-ui-small);
+}
+
+.bs-installed-table th {
+  text-align: left;
+  color: var(--text-muted);
+  font-weight: 500;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.bs-installed-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.bs-link {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  color: var(--text-normal);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bs-link:hover {
+  color: var(--interactive-accent);
+}
+
+.bs-badge-warn {
+  background: var(--background-modifier-error-hover, var(--background-secondary));
+  color: var(--text-muted);
+}
+
+.bs-badge-update {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+}

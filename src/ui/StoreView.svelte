@@ -8,6 +8,7 @@
   import FilterSidebar from "./FilterSidebar.svelte";
   import PluginCard from "./PluginCard.svelte";
   import DetailPane from "./DetailPane.svelte";
+  import InstalledTab from "./InstalledTab.svelte";
 
   let { plugin, view }: { plugin: BetterStorePlugin; view: BetterStoreView } = $props();
 
@@ -113,8 +114,11 @@
   {:else if error}
     <div class="bs-status bs-error">Failed to load the plugin catalog: {error}</div>
   {:else if tab === "installed"}
-    <!-- installed tab mounts here (Task 12) -->
-    <div class="bs-status">Installed view coming in a later task.</div>
+    <div class="bs-body">
+      <main class="bs-main">
+        <InstalledTab {plugin} {entries} onSelect={(entry) => { tab = "all"; selected = entry; }} />
+      </main>
+    </div>
   {:else}
     <div class="bs-body">
       <FilterSidebar {filters} showSort={tab === "all"} onChange={(next) => (filters = next)} />
