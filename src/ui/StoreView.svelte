@@ -73,10 +73,15 @@
     if (selected?.id === id) selected = null;
   }
 
+  let lastHideInstalledDefault = plugin.settings.hideInstalledByDefault;
+
   onMount(() => {
     void load();
     return plugin.registerSettingsListener(() => {
-      filters = { ...filters, hideInstalled: plugin.settings.hideInstalledByDefault };
+      if (plugin.settings.hideInstalledByDefault !== lastHideInstalledDefault) {
+        lastHideInstalledDefault = plugin.settings.hideInstalledByDefault;
+        filters = { ...filters, hideInstalled: plugin.settings.hideInstalledByDefault };
+      }
       // Re-render for ignore-list changes; catalog itself is unaffected.
       entries = [...entries];
     });

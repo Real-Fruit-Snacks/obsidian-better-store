@@ -7,10 +7,12 @@ export default class BetterStorePlugin extends Plugin {
   settings: BetterStoreSettings = DEFAULT_SETTINGS;
   service!: DataService;
   private settingsListeners: (() => void)[] = [];
+  private serviceKey = "";
 
   async onload(): Promise<void> {
     await this.loadSettings();
     this.service = this.createService();
+    this.serviceKey = this.currentServiceKey();
     this.addSettingTab(new BetterStoreSettingTab(this.app, this));
     this.registerView(VIEW_TYPE_BETTER_STORE, (leaf) => new BetterStoreView(leaf, this));
     this.addRibbonIcon("store", "Open Better Store", () => void this.activateView());
@@ -19,7 +21,11 @@ export default class BetterStorePlugin extends Plugin {
 
   async activateView(): Promise<void> {
     const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_BETTER_STORE)[0];
-    const leaf = existing ?? this.app.workspace.getLeaf("tab");
+    if (existing) {
+      this.app.workspace.revealLeaf(existing);
+      return;
+    }
+    const leaf = this.app.workspace.getLeaf("tab");
     await leaf.setViewState({ type: VIEW_TYPE_BETTER_STORE, active: true });
     this.app.workspace.revealLeaf(leaf);
   }
@@ -53,10 +59,18 @@ export default class BetterStorePlugin extends Plugin {
     this.settings = { ...structuredClone(DEFAULT_SETTINGS), ...((await this.loadData()) ?? {}) };
   }
 
+  private currentServiceKey(): string {
+    return `${this.settings.githubToken}|${this.settings.cacheTtlHours}`;
+  }
+
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
     // Token/TTL changes need a fresh service.
-    this.service = this.createService();
+    const key = this.currentServiceKey();
+    if (key !== this.serviceKey) {
+      this.serviceKey = key;
+      this.service = this.createService();
+    }
     for (const cb of this.settingsListeners) cb();
   }
 }

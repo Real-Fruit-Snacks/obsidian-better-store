@@ -35,6 +35,7 @@
     type="search"
     class="bs-search"
     placeholder="Search plugins…"
+    aria-label="Search plugins"
     value={filters.query}
     oninput={(e) => onChange({ ...filters, query: e.currentTarget.value })}
   />

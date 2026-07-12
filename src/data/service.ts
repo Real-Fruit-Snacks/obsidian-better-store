@@ -68,7 +68,11 @@ export class DataService {
   }
 
   async loadCatalog(force = false): Promise<Catalog> {
-    const cached = await this.readJson<{ fetchedAt: number; entries: PluginEntry[] }>("catalog.json");
+    const cachedRaw = await this.readJson<{ fetchedAt: number; entries: PluginEntry[] }>("catalog.json");
+    const cached =
+      cachedRaw != null && Array.isArray(cachedRaw.entries) && typeof cachedRaw.fetchedAt === "number"
+        ? cachedRaw
+        : null;
     const fresh = cached != null && this.io.now() - cached.fetchedAt < this.opts.ttlMs;
     if (cached && fresh && !force) return { ...cached, stale: false };
 
@@ -164,7 +168,10 @@ export class DataService {
         url: r.html_url ?? "",
       })),
       latestVersion: typeof manifest.version === "string" ? manifest.version : null,
-      fundingUrl: typeof manifest.fundingUrl === "string" ? manifest.fundingUrl : null,
+      fundingUrl:
+        typeof manifest.fundingUrl === "string" && /^https?:\/\//i.test(manifest.fundingUrl)
+          ? manifest.fundingUrl
+          : null,
     };
     this.enrichments.set(repo, enrichment);
     return enrichment;

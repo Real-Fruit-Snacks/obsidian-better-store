@@ -118,6 +118,17 @@ describe("enrichment", () => {
       fundingUrl: "https://ko-fi.com/x",
     });
   });
+
+  it("rejects non-http(s) fundingUrl schemes", async () => {
+    io.responses.set("https://api.github.com/repos/a/b", JSON.stringify({ stargazers_count: 1, open_issues_count: 0 }));
+    io.responses.set("https://api.github.com/repos/a/b/releases?per_page=10", JSON.stringify([]));
+    io.responses.set(
+      "https://raw.githubusercontent.com/a/b/HEAD/manifest.json",
+      JSON.stringify({ version: "1.0.0", fundingUrl: "javascript:alert(1)" })
+    );
+    const e = await service.getEnrichment("a/b");
+    expect(e.fundingUrl).toBeNull();
+  });
 });
 
 describe("getReadme / getLatestVersion", () => {

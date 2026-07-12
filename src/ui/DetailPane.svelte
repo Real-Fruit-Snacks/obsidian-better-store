@@ -1,6 +1,6 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import { MarkdownRenderer } from "obsidian";
+  import { MarkdownRenderer, sanitizeHTMLToDom } from "obsidian";
   import type BetterStorePlugin from "../main";
   import type { BetterStoreView } from "../view";
   import type { PluginEntry } from "../data/types";
@@ -37,6 +37,10 @@
       const md = rewriteReadmeUrls(await plugin.service.getReadme(current.repo), current.repo);
       if (current.id !== entry.id) return; // user switched plugins mid-fetch
       await MarkdownRenderer.render(plugin.app, md, el, "", view);
+      if (current.id !== entry.id) return; // user switched plugins mid-render
+      const rendered = el.innerHTML;
+      el.empty();
+      el.appendChild(sanitizeHTMLToDom(rendered));
     } catch {
       if (current.id === entry.id) el.createEl("p", { text: current.description });
     } finally {
@@ -64,7 +68,7 @@
       <h3>{entry.name}</h3>
       <span class="bs-detail-author">by {entry.author}</span>
     </div>
-    <button class="bs-detail-close" title="Close" onclick={onClose}>✕</button>
+    <button class="bs-detail-close" title="Close" aria-label="Close details" onclick={onClose}>✕</button>
   </div>
 
   <div class="bs-detail-stats">
@@ -92,7 +96,7 @@
     <details class="bs-releases">
       <summary>Recent releases</summary>
       <ul>
-        {#each enrichment.releases as r (r.tag)}
+        {#each enrichment.releases as r, i (i)}
           <li><a href={r.url} target="_blank" rel="noopener">{r.tag}</a> — {r.publishedAt.slice(0, 10)}</li>
         {/each}
       </ul>

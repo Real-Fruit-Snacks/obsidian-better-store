@@ -37,6 +37,7 @@
     <button
       class="bs-ignore"
       title="Ignore this plugin"
+      aria-label="Ignore this plugin"
       onclick={(e) => { e.stopPropagation(); onIgnore(); }}
     >✕</button>
   </div>
