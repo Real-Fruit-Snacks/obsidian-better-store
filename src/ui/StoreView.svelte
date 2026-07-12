@@ -157,7 +157,7 @@
     <div class="bs-body">
       <FilterSidebar {filters} showSort={tab === "all"} onChange={(next) => { filters = next; renderLimit = PAGE_SIZE; }} />
       <main class="bs-main">
-        <div class="bs-count">{visible.length} plugins</div>
+        <div class="bs-count">{visible.length.toLocaleString()} plugins</div>
         <div class="bs-grid">
           {#each shown as entry (entry.id)}
             <PluginCard
@@ -171,7 +171,7 @@
         </div>
         {#if renderLimit < visible.length}
           <div class="bs-load-more" use:loadMoreSentinel>
-            Showing {renderLimit} of {visible.length} — scroll for more
+            Showing {renderLimit.toLocaleString()} of {visible.length.toLocaleString()} — scroll for more
           </div>
         {/if}
       </main>
