@@ -367,3 +367,30 @@
   box-shadow: none;
   cursor: pointer;
 }
+
+/* Icons (Obsidian lucide via setIcon) */
+.bs-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.bs-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.bs-card-meta span,
+.bs-detail-stats span,
+.bs-refresh,
+.bs-badge-update {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bs-ignore,
+.bs-detail-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

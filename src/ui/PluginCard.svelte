@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PluginEntry } from "../data/types";
   import { formatAge, formatCount } from "../data/format";
+  import Icon from "./Icon.svelte";
 
   let {
     entry,
@@ -39,11 +40,11 @@
       title="Ignore this plugin"
       aria-label="Ignore this plugin"
       onclick={(e) => { e.stopPropagation(); onIgnore(); }}
-    >✕</button>
+    ><Icon name="x" /></button>
   </div>
   <div class="bs-card-meta">
     <span>{entry.author}</span>
-    <span>⬇ {formatCount(entry.downloads)}</span>
+    <span title="Downloads"><Icon name="download" />{formatCount(entry.downloads)}</span>
     <span>{formatAge(entry.updated, Date.now())}</span>
   </div>
   <p class="bs-card-desc">{entry.description}</p>

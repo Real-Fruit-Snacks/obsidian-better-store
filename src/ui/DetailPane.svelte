@@ -7,6 +7,7 @@
   import { RateLimitError, type Enrichment } from "../data/service";
   import { rewriteReadmeUrls } from "../data/readme";
   import { formatAge, formatCount } from "../data/format";
+  import Icon from "./Icon.svelte";
 
   let {
     plugin,
@@ -68,15 +69,15 @@
       <h3>{entry.name}</h3>
       <span class="bs-detail-author">by {entry.author}</span>
     </div>
-    <button class="bs-detail-close" title="Close" aria-label="Close details" onclick={onClose}>✕</button>
+    <button class="bs-detail-close" title="Close" aria-label="Close details" onclick={onClose}><Icon name="x" /></button>
   </div>
 
   <div class="bs-detail-stats">
-    <span title="Downloads">⬇ {formatCount(entry.downloads)}</span>
-    <span title="Last updated">🕐 {formatAge(entry.updated, Date.now())}</span>
+    <span title="Downloads"><Icon name="download" />{formatCount(entry.downloads)}</span>
+    <span title="Last updated"><Icon name="clock" />{formatAge(entry.updated, Date.now())}</span>
     {#if enrichment}
-      <span title="GitHub stars">★ {formatCount(enrichment.stars)}</span>
-      <span title="Open issues">⚑ {formatCount(enrichment.openIssues)}</span>
+      <span title="GitHub stars"><Icon name="star" />{formatCount(enrichment.stars)}</span>
+      <span title="Open issues"><Icon name="circle-dot" />{formatCount(enrichment.openIssues)}</span>
     {/if}
   </div>
 

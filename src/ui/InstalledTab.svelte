@@ -5,6 +5,7 @@
   import { buildInstalledInfo, type InstalledInfo } from "../data/installed";
   import { formatAge } from "../data/format";
   import { getPluginsApi } from "./store-context";
+  import Icon from "./Icon.svelte";
 
   let {
     plugin,
@@ -88,7 +89,7 @@
             {info.version}
             {#if info.updateAvailable}
               <button class="bs-badge bs-badge-update" title="Open in Community Plugins to update" onclick={() => openNative(info.id)}>
-                → {info.latestVersion}
+                <Icon name="arrow-up" />{info.latestVersion}
               </button>
             {/if}
           </td>

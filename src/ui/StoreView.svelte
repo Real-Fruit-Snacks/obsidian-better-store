@@ -9,6 +9,7 @@
   import PluginCard from "./PluginCard.svelte";
   import DetailPane from "./DetailPane.svelte";
   import InstalledTab from "./InstalledTab.svelte";
+  import Icon from "./Icon.svelte";
 
   let { plugin, view }: { plugin: BetterStorePlugin; view: BetterStoreView } = $props();
 
@@ -100,7 +101,7 @@
       {/each}
     </nav>
     <button class="bs-refresh" title="Refresh catalog" onclick={() => void load(true)} disabled={loading}>
-      ↻ Refresh
+      <Icon name="refresh-cw" />Refresh
     </button>
   </header>
 
