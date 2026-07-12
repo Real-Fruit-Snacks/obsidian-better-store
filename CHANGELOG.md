@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.7] - 2026-07-12
+
+### Fixed
+- Entering or clearing the GitHub token no longer crashes the settings tab (Obsidian's secret input reports an unset secret as `null`, which the save handler didn't expect). The crash also prevented a freshly entered token from being saved, which made the Test button report the wrong result.
+
 ## [0.3.6] - 2026-07-12
 
 ### Added
@@ -163,6 +168,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.7]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.7
 [0.3.6]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.6
 [0.3.5]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.5
 [0.3.4]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.4

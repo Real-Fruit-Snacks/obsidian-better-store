@@ -114,7 +114,8 @@ export class BetterStoreSettingTab extends PluginSettingTab {
             const secret = new SecretComponent(this.app, el);
             secret.setValue(this.plugin.getGithubToken());
             secret.onChange((value) => {
-              pending = value.trim();
+              // SecretComponent reports a cleared/unset secret as null.
+              pending = (value ?? "").trim();
               if (timer != null) window.clearTimeout(timer);
               timer = window.setTimeout(flush, 600);
             });
