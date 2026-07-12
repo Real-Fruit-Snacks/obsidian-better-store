@@ -34,11 +34,21 @@ jobs:
             manifest.json
             styles.css
 
+      # The release body comes from CHANGELOG.md; a missing entry fails the
+      # release so every version ships with real notes.
+      - name: Extract changelog entry
+        run: |
+          awk "/^## \\[$GITHUB_REF_NAME\\]/{flag=1; next} /^## \\[/{flag=0} flag" CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "::error::No CHANGELOG.md entry for $GITHUB_REF_NAME — add one before tagging."
+            exit 1
+          fi
+
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
             --title "Better Store $GITHUB_REF_NAME" \
-            --generate-notes \
+            --notes-file release-notes.md \
             main.js manifest.json styles.css
