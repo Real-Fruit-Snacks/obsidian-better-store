@@ -146,7 +146,7 @@ npm install
 npm run dev            # watch build
 npm run check          # TypeScript type check
 npm run check:svelte   # Svelte component type check
-npm test               # unit tests (113)
+npm test               # unit tests (121)
 npm run build          # production build + bundle verification
 ```
 

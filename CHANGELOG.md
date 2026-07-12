@@ -4,6 +4,13 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.14] - 2026-07-12
+
+### Changed
+- **Hardened the internal-API access.** Obsidian's undocumented `app.plugins` and `app.commands` are now shape-checked before use: if a future Obsidian ever changes them, the installed-plugin views degrade to an empty state (with a console warning) instead of throwing during render, and BRAT command hand-offs fail quietly. This came out of a full self-audit of the codebase.
+- Catalog-snapshot writes (`history.json`, `known.json`) are serialized through a lock, so two overlapping "refresh" actions can no longer race and drop a trending snapshot or a newly-seen plugin.
+- A malformed (non-JSON) GitHub releases response now yields "no release notes" instead of surfacing as a generic error.
+
 ## [0.3.13] - 2026-07-12
 
 ### Added
@@ -202,6 +209,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.14]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.14
 [0.3.13]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.13
 [0.3.12]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.12
 [0.3.11]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.11

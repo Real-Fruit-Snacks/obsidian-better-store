@@ -52,12 +52,24 @@ export class DataService {
   private readmes = new Map<string, string>();
   private enrichments = new Map<string, Enrichment>();
   private repoStars = new Map<string, number>();
+  /** Serializes read-modify-write operations on the local snapshot files. */
+  private writeLock: Promise<unknown> = Promise.resolve();
 
   constructor(
     private io: ServiceIO,
     private cacheDir: string,
     private opts: { ttlMs: number; githubToken?: string }
   ) {}
+
+  /**
+   * Run a read-modify-write task after any previous one finishes, so overlapping
+   * catalog refreshes can't interleave their updates to history.json/known.json.
+   */
+  private serialize<T>(task: () => Promise<T>): Promise<T> {
+    const run = this.writeLock.then(task, task);
+    this.writeLock = run.catch(() => {});
+    return run;
+  }
 
   private async readJson<T>(name: string): Promise<T | null> {
     const raw = await this.io.readFile(`${this.cacheDir}/${name}`);
@@ -103,28 +115,32 @@ export class DataService {
     }
   }
 
-  private async recordSnapshot(entries: PluginEntry[]): Promise<void> {
-    const history = (await this.readJson<Snapshot[]>("history.json")) ?? [];
-    const snap: Snapshot = {
-      ts: this.io.now(),
-      downloads: Object.fromEntries(entries.map((e) => [e.id, e.downloads])),
-    };
-    const next = appendSnapshot(history, snap);
-    if (next !== history) await this.writeJson("history.json", next);
+  private recordSnapshot(entries: PluginEntry[]): Promise<void> {
+    return this.serialize(async () => {
+      const history = (await this.readJson<Snapshot[]>("history.json")) ?? [];
+      const snap: Snapshot = {
+        ts: this.io.now(),
+        downloads: Object.fromEntries(entries.map((e) => [e.id, e.downloads])),
+      };
+      const next = appendSnapshot(history, snap);
+      if (next !== history) await this.writeJson("history.json", next);
+    });
   }
 
   async getTrendingDeltas(): Promise<Record<string, number>> {
     return computeDeltas((await this.readJson<Snapshot[]>("history.json")) ?? []);
   }
 
-  private async recordKnownIds(entries: PluginEntry[]): Promise<void> {
-    const known = await this.readJson<KnownIds>("known.json");
-    const next = updateKnownIds(
-      known != null && typeof known.firstSeen === "object" ? known : null,
-      entries.map((e) => e.id),
-      this.io.now()
-    );
-    await this.writeJson("known.json", next);
+  private recordKnownIds(entries: PluginEntry[]): Promise<void> {
+    return this.serialize(async () => {
+      const known = await this.readJson<KnownIds>("known.json");
+      const next = updateKnownIds(
+        known != null && typeof known.firstSeen === "object" ? known : null,
+        entries.map((e) => e.id),
+        this.io.now()
+      );
+      await this.writeJson("known.json", next);
+    });
   }
 
   /** Ids of plugins that first appeared in the registry within the last N days. */
@@ -203,12 +219,13 @@ export class DataService {
     ]);
 
     const repoData = JSON.parse(repoRaw) as { stargazers_count?: number; open_issues_count?: number };
-    const releasesData = JSON.parse(releasesRaw) as {
-      tag_name?: string;
-      published_at?: string;
-      html_url?: string;
-      body?: string;
-    }[];
+    type RawRelease = { tag_name?: string; published_at?: string; html_url?: string; body?: string };
+    let releasesData: RawRelease[];
+    try {
+      releasesData = JSON.parse(releasesRaw) as RawRelease[];
+    } catch {
+      releasesData = []; // releases are non-critical; a bad body just means no notes
+    }
     let manifest: { version?: string; fundingUrl?: string; minAppVersion?: string } = {};
     if (manifestRaw != null) {
       try {
