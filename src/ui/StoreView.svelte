@@ -50,6 +50,26 @@
     })
   );
 
+  // Incremental rendering: keeping thousands of cards in the DOM makes tab
+  // switches and filter changes take seconds (keyed reorder of every node).
+  // Only a page is mounted; a sentinel below the grid grows it on scroll.
+  const PAGE_SIZE = 60;
+  let renderLimit = $state(PAGE_SIZE);
+  let shown = $derived(visible.slice(0, renderLimit));
+
+  function loadMoreSentinel(node: HTMLElement) {
+    const observer = new IntersectionObserver(
+      (intersections) => {
+        if (intersections.some((i) => i.isIntersecting) && renderLimit < visible.length) {
+          renderLimit += PAGE_SIZE;
+        }
+      },
+      { rootMargin: "600px" }
+    );
+    observer.observe(node);
+    return { destroy: () => observer.disconnect() };
+  }
+
   async function load(force = false): Promise<void> {
     loading = true;
     error = null;
@@ -96,7 +116,7 @@
         <button
           class="bs-tab"
           class:bs-tab-active={tab === t.id}
-          onclick={() => { tab = t.id; selected = null; }}
+          onclick={() => { tab = t.id; selected = null; renderLimit = PAGE_SIZE; }}
         >{t.label}</button>
       {/each}
     </nav>
@@ -127,11 +147,11 @@
     </div>
   {:else}
     <div class="bs-body">
-      <FilterSidebar {filters} showSort={tab === "all"} onChange={(next) => (filters = next)} />
+      <FilterSidebar {filters} showSort={tab === "all"} onChange={(next) => { filters = next; renderLimit = PAGE_SIZE; }} />
       <main class="bs-main">
         <div class="bs-count">{visible.length} plugins</div>
         <div class="bs-grid">
-          {#each visible as entry (entry.id)}
+          {#each shown as entry (entry.id)}
             <PluginCard
               {entry}
               installed={installedIds.has(entry.id)}
@@ -141,6 +161,11 @@
             />
           {/each}
         </div>
+        {#if renderLimit < visible.length}
+          <div class="bs-load-more" use:loadMoreSentinel>
+            Showing {renderLimit} of {visible.length} — scroll for more
+          </div>
+        {/if}
       </main>
       {#if selected}
         <DetailPane {plugin} {view} entry={selected} onClose={() => (selected = null)} />

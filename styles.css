@@ -502,3 +502,10 @@
   align-items: center;
   justify-content: center;
 }
+
+.bs-load-more {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: var(--font-ui-small);
+}
