@@ -370,56 +370,30 @@
   font-size: var(--font-ui-small);
 }
 
-.bs-installed-list {
-  display: flex;
-  flex-direction: column;
+.bs-installed-grid {
+  padding: 0;
 }
 
-.bs-installed-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 8px;
-  border-bottom: 1px solid var(--background-modifier-border);
+.bs-installed-card {
+  cursor: default;
 }
 
-.bs-installed-row:hover {
-  background: var(--background-modifier-hover);
+.bs-installed-card[role="button"] {
+  cursor: pointer;
 }
 
-.bs-installed-off .bs-installed-main {
-  opacity: 0.6;
+.bs-installed-off .bs-card-name,
+.bs-installed-off .bs-card-meta,
+.bs-installed-off .bs-card-desc {
+  opacity: 0.55;
 }
 
-.bs-installed-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.bs-installed-title {
+.bs-installed-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.bs-installed-name {
-  font-weight: 600;
-}
-
-.bs-installed-sub {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--font-ui-small);
-  color: var(--text-muted);
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.bs-installed-desc {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--text-faint);
+  gap: 10px;
+  margin-top: auto;
+  min-height: 24px;
 }
 
 .bs-update-btn {

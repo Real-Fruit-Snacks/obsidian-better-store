@@ -105,73 +105,90 @@
     <div class="bs-status bs-error">{toggleError}</div>
   {/if}
 
-  <div class="bs-installed-list">
+  <div class="bs-grid bs-installed-grid">
     {#each visible as info (info.id)}
       {@const entry = byId.get(info.id)}
-      <div class="bs-installed-row" class:bs-installed-off={!info.enabled}>
-        <div class="bs-installed-main">
-          <div class="bs-installed-title">
-            {#if entry}
-              <button class="bs-link" onclick={() => onSelect(entry)}>{info.name}</button>
-            {:else}
-              <span class="bs-installed-name">{info.name}</span>
-            {/if}
-            {#if info.abandoned}
-              <span class="bs-badge bs-badge-warn" title="No update in over a year">stale</span>
-            {/if}
-          </div>
-          <div class="bs-installed-sub">
-            <span>v{info.version}</span>
-            <span>·</span>
-            <span>{info.updated ? `updated ${formatAge(info.updated, Date.now())}` : "not in catalog"}</span>
-            {#if entry}
-              <span>·</span>
-              <span class="bs-installed-desc">{entry.description}</span>
-            {/if}
+      <div
+        class="bs-card bs-installed-card"
+        class:bs-installed-off={!info.enabled}
+        role={entry ? "button" : undefined}
+        tabindex={entry ? 0 : undefined}
+        onclick={entry ? () => onSelect(entry) : undefined}
+        onkeydown={entry
+          ? (e) => {
+              if (e.target !== e.currentTarget) return;
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect(entry);
+              }
+            }
+          : undefined}
+      >
+        <div class="bs-card-top">
+          <span class="bs-card-name">{info.name}</span>
+          {#if info.abandoned}
+            <span class="bs-badge bs-badge-warn" title="No update in over a year">stale</span>
+          {/if}
+          <div
+            class="checkbox-container bs-installed-toggle"
+            class:is-enabled={info.enabled}
+            class:bs-toggle-locked={info.id === plugin.manifest.id}
+            role="switch"
+            aria-checked={info.enabled}
+            aria-label={`Enable ${info.name}`}
+            tabindex={info.id === plugin.manifest.id ? -1 : 0}
+            title={info.id === plugin.manifest.id ? "Better Store cannot disable itself" : info.enabled ? "Disable" : "Enable"}
+            onclick={(e) => {
+              e.stopPropagation();
+              void toggle(info);
+            }}
+            onkeydown={(e) => {
+              e.stopPropagation();
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                void toggle(info);
+              }
+            }}
+          >
+            <input type="checkbox" tabindex="-1" checked={info.enabled} disabled={info.id === plugin.manifest.id} />
           </div>
         </div>
 
-        {#if info.updateAvailable}
-          <button
-            class="bs-update-btn"
-            title="Open in Community Plugins to update"
-            onclick={() => openNative(info.id)}
-          >
-            <Icon name="arrow-up" />Update to {info.latestVersion}
-          </button>
+        <div class="bs-card-meta">
+          <span>v{info.version}</span>
+          <span>{info.updated ? `updated ${formatAge(info.updated, Date.now())}` : "not in catalog"}</span>
+        </div>
+
+        {#if entry}
+          <p class="bs-card-desc">{entry.description}</p>
         {/if}
 
-        {#if info.repo}
-          <a
-            class="bs-installed-changelog"
-            href={`https://github.com/${info.repo}/releases`}
-            target="_blank"
-            rel="noopener"
-            title="Changelog"
-            aria-label={`Changelog for ${info.name}`}
-          >
-            <Icon name="scroll-text" />
-          </a>
-        {/if}
-
-        <div
-          class="checkbox-container bs-installed-toggle"
-          class:is-enabled={info.enabled}
-          class:bs-toggle-locked={info.id === plugin.manifest.id}
-          role="switch"
-          aria-checked={info.enabled}
-          aria-label={`Enable ${info.name}`}
-          tabindex={info.id === plugin.manifest.id ? -1 : 0}
-          title={info.id === plugin.manifest.id ? "Better Store cannot disable itself" : info.enabled ? "Disable" : "Enable"}
-          onclick={() => void toggle(info)}
-          onkeydown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              void toggle(info);
-            }
-          }}
-        >
-          <input type="checkbox" tabindex="-1" checked={info.enabled} disabled={info.id === plugin.manifest.id} />
+        <div class="bs-installed-actions">
+          {#if info.updateAvailable}
+            <button
+              class="bs-update-btn"
+              title="Open in Community Plugins to update"
+              onclick={(e) => {
+                e.stopPropagation();
+                openNative(info.id);
+              }}
+            >
+              <Icon name="arrow-up" />Update to {info.latestVersion}
+            </button>
+          {/if}
+          {#if info.repo}
+            <a
+              class="bs-installed-changelog"
+              href={`https://github.com/${info.repo}/releases`}
+              target="_blank"
+              rel="noopener"
+              title="Changelog"
+              aria-label={`Changelog for ${info.name}`}
+              onclick={(e) => e.stopPropagation()}
+            >
+              <Icon name="scroll-text" />
+            </a>
+          {/if}
         </div>
       </div>
     {:else}
