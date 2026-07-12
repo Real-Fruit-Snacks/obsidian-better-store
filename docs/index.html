@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Better Store — the community plugin browser, polished</title>
+<meta name="description" content="An Obsidian plugin that replaces day-to-day use of the built-in community plugin browser: filters, categories, rich README previews, trending, and an installed-plugins dashboard.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23090c0d'/%3E%3Ctext x='8' y='12' font-size='11' text-anchor='middle' fill='%2363f2ab' font-family='monospace'%3E%E2%9D%AF%3C/text%3E%3C/svg%3E">
+<style>
+/* Terminal Workbench tokens — https://github.com/Real-Fruit-Snacks/terminal-workbench-design-system */
+:root {
+  --bg-0:#090c0d; --bg-1:#0e1214; --bg-2:#13191c; --bg-3:#182024; --bg-4:#202a2f;
+  --border:#2a363d; --border-strong:#39484f;
+  --text-normal:#dce4df; --text-soft:#b4c3bd; --text-muted:#879994; --text-faint:#63736f;
+  --text-on-accent:#07100d;
+  --accent:#63f2ab; --accent-alt:#6bdcff; --warm:#f0c674;
+  --red:#ff6e7a; --orange:#f7a35c; --violet:#b78cff;
+  --font-mono:"Terminal Workbench Mono","Berkeley Mono","JetBrains Mono","Cascadia Code","IBM Plex Mono",SFMono-Regular,monospace;
+  --font-ui:Inter,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-0:#f5f7f4; --bg-1:#edf2ee; --bg-2:#e2eae5; --bg-3:#d6e1db; --bg-4:#c8d5cf;
+    --border:#bfcbc5; --border-strong:#9daea7;
+    --text-normal:#17201d; --text-soft:#34443f; --text-muted:#60706a; --text-faint:#81918a;
+    --text-on-accent:#f9fbf8;
+    --accent:#007a4d; --accent-alt:#006f9e; --warm:#a46600;
+    color-scheme: light;
+  }
+}
+:root[data-theme="dark"] {
+  --bg-0:#090c0d; --bg-1:#0e1214; --bg-2:#13191c; --bg-3:#182024; --bg-4:#202a2f;
+  --border:#2a363d; --border-strong:#39484f;
+  --text-normal:#dce4df; --text-soft:#b4c3bd; --text-muted:#879994; --text-faint:#63736f;
+  --text-on-accent:#07100d;
+  --accent:#63f2ab; --accent-alt:#6bdcff; --warm:#f0c674;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg-0:#f5f7f4; --bg-1:#edf2ee; --bg-2:#e2eae5; --bg-3:#d6e1db; --bg-4:#c8d5cf;
+  --border:#bfcbc5; --border-strong:#9daea7;
+  --text-normal:#17201d; --text-soft:#34443f; --text-muted:#60706a; --text-faint:#81918a;
+  --text-on-accent:#f9fbf8;
+  --accent:#007a4d; --accent-alt:#006f9e; --warm:#a46600;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg-0); color: var(--text-normal);
+  font-family: var(--font-mono); font-size: 15px; line-height: 1.7;
+}
+a { color: var(--accent-alt); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 0 24px 72px; }
+
+/* manifest label idiom */
+.manifest {
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
+}
+
+header.site {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0; border-bottom: 1px solid var(--border); margin-bottom: 36px;
+}
+header.site .brand { font-weight: 700; letter-spacing: 0.06em; }
+header.site .brand .p { color: var(--accent); }
+header.site nav { display: flex; gap: 18px; align-items: center; }
+header.site nav a { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+header.site nav a:hover { color: var(--text-normal); text-decoration: none; }
+#theme-toggle {
+  background: var(--bg-2); color: var(--text-muted); border: 1px solid var(--border);
+  border-radius: 6px; font: inherit; font-size: 11px; padding: 4px 10px; cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+#theme-toggle:hover { background: var(--bg-3); color: var(--text-normal); }
+
+.hero { text-align: center; margin-bottom: 44px; }
+.hero img { width: 100%; max-width: 900px; border: 1px solid var(--border); border-radius: 8px; }
+.hero h1 { font-size: 2.1em; font-weight: 760; margin: 28px 0 6px; letter-spacing: 0.02em; }
+.hero h1 .p { color: var(--accent); }
+.hero .tag { color: var(--text-muted); margin: 0 0 22px; }
+.cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn {
+  display: inline-block; padding: 9px 18px; border-radius: 6px; font-weight: 650; font-size: 14px;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.btn-primary { background: var(--accent); color: var(--text-on-accent); }
+.btn-primary:hover { filter: brightness(1.08); text-decoration: none; }
+.btn-quiet { border: 1px solid var(--border-strong); color: var(--text-soft); }
+.btn-quiet:hover { background: var(--bg-2); text-decoration: none; }
+
+section { margin-bottom: 48px; }
+section > .manifest { display: block; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 20px; }
+h2 { color: var(--accent); font-size: 1.38em; font-weight: 740; }
+h3 { color: var(--accent-alt); font-size: 1.16em; font-weight: 720; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.panel {
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px;
+}
+.panel .manifest { color: var(--accent); margin-bottom: 6px; display: block; }
+.panel p { margin: 0; color: var(--text-soft); font-size: 13.5px; }
+
+pre {
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;
+  padding: 14px 16px; overflow-x: auto; line-height: 1.62; font-size: 13px; color: var(--text-soft);
+}
+pre .c { color: var(--text-faint); }
+pre .a { color: var(--accent); }
+code { font-family: var(--font-mono); }
+
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th { background: var(--bg-2); text-align: left; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; }
+tbody tr:nth-child(even) { background: color-mix(in srgb, var(--text-normal) 3%, transparent); }
+td:first-child { color: var(--accent-alt); white-space: nowrap; }
+
+.callout {
+  background: color-mix(in srgb, var(--warm) 9%, var(--bg-0));
+  border: 1px solid color-mix(in srgb, var(--warm) 34%, var(--border));
+  border-left: 3px solid var(--warm);
+  border-radius: 6px; padding: 12px 16px; font-size: 13.5px; color: var(--text-soft);
+}
+
+footer {
+  border-top: 1px solid var(--border); padding-top: 20px;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  color: var(--text-faint); font-size: 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="site">
+    <span class="brand"><span class="p">&#10095;</span> BETTER <span class="p">STORE</span></span>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#settings">Settings</a>
+      <a href="https://github.com/Real-Fruit-Snacks/obsidian-better-store">GitHub</a>
+      <button id="theme-toggle" type="button" aria-label="Toggle color theme">THEME</button>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <img src="assets/banner.svg" alt="Better Store — the community plugin browser, polished" width="900">
+    <h1>BETTER <span class="p">STORE</span></h1>
+    <p class="tag">The Obsidian community plugin browser, polished — filters, categories, rich previews, trending, and an installed-plugins dashboard.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/latest">Download latest release</a>
+      <a class="btn btn-quiet" href="https://github.com/Real-Fruit-Snacks/obsidian-better-store">View source</a>
+    </div>
+  </div>
+
+  <section id="features">
+    <span class="manifest">// Features</span>
+    <div class="grid">
+      <div class="panel"><span class="manifest">Full workspace tab</span><p>Browse in a real tab with a filter sidebar, card grid, and detail pane — not a cramped modal.</p></div>
+      <div class="panel"><span class="manifest">Filters &amp; sorting</span><p>Search, heuristic categories, updated-within, minimum downloads, hide installed; sort by downloads, recency, name, or trending.</p></div>
+      <div class="panel"><span class="manifest">Rich details</span><p>Rendered README with images, GitHub stars and open issues, recent releases, and funding links — fetched lazily, cached locally.</p></div>
+      <div class="panel"><span class="manifest">Trending</span><p>Local download-delta tracking that builds up as you use the plugin. No external service, no telemetry.</p></div>
+      <div class="panel"><span class="manifest">Installed dashboard</span><p>Versions vs. latest, update badges, enable/disable toggles, staleness warnings, and changelog links.</p></div>
+      <div class="panel"><span class="manifest">Ignore list</span><p>Hide plugins you never want to see again. Managed from any card or from settings.</p></div>
+    </div>
+  </section>
+
+  <section id="install">
+    <span class="manifest">// Installation</span>
+    <h3>Manual install</h3>
+    <pre><span class="c"># 1. download better-store-x.y.z.zip from the latest release</span>
+<span class="c"># 2. extract into your vault:</span>
+<span class="a">&#10095;</span> YourVault/.obsidian/plugins/better-store/
+<span class="c">#    (main.js, manifest.json, styles.css, versions.json)</span>
+<span class="c"># 3. Settings &#8594; Community plugins &#8594; enable "Better Store"</span></pre>
+    <h3>Via BRAT</h3>
+    <pre><span class="a">&#10095;</span> BRAT: Add beta plugin &#8594; Real-Fruit-Snacks/obsidian-better-store</pre>
+    <div class="callout">Better Store never installs, updates, or removes other plugins' files. Install actions hand off to Obsidian's native Community Plugins dialog.</div>
+  </section>
+
+  <section id="settings">
+    <span class="manifest">// Settings</span>
+    <table>
+      <thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td>GitHub token</td><td>Optional. Raises the GitHub API rate limit for stars/issues/releases data. A classic token with no scopes is enough. Stored in plain text in the vault's plugin data — omit it on synced vaults you don't trust.</td></tr>
+        <tr><td>Cache lifetime</td><td>How long the plugin catalog is cached (default 12 h). Manual refresh in the store header.</td></tr>
+        <tr><td>Default sort</td><td>Downloads, recently updated, name, or trending.</td></tr>
+        <tr><td>Hide installed</td><td>Start with already-installed plugins hidden.</td></tr>
+        <tr><td>Ignored plugins</td><td>Review and un-ignore anything you've hidden.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="hosting">
+    <span class="manifest">// Self-hosting &amp; offline</span>
+    <p style="color:var(--text-soft)">Every release ships an <strong>offline bundle</strong>: full source, prebuilt <code>main.js</code>, and a <code>.gitlab-ci.yml</code> so the project can be hosted and built on a self-hosted or air-gapped GitLab instance (needs only a local <code>node:20</code> image and an npm mirror).</p>
+  </section>
+
+  <footer>
+    <span><span class="manifest" style="color:var(--accent)">Better Store</span> &nbsp;&#183;&nbsp; MIT License</span>
+    <span>Styled with <a href="https://github.com/Real-Fruit-Snacks/terminal-workbench-design-system">Terminal Workbench</a></span>
+  </footer>
+
+</div>
+<script>
+  (function () {
+    var btn = document.getElementById("theme-toggle");
+    var stored = localStorage.getItem("twb-theme");
+    if (stored) document.documentElement.dataset.theme = stored;
+    btn.addEventListener("click", function () {
+      var root = document.documentElement;
+      var dark = root.dataset.theme
+        ? root.dataset.theme === "dark"
+        : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var next = dark ? "light" : "dark";
+      root.dataset.theme = next;
+      localStorage.setItem("twb-theme", next);
+    });
+  })();
+</script>
+</body>
+</html>

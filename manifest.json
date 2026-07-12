@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "minAppVersion": "1.5.0",
   "description": "A polished community plugin browser: filters, rich details, trending, and installed-plugin management.",
-  "author": "Matt",
+  "author": "Real-Fruit-Snacks",
+  "authorUrl": "https://github.com/Real-Fruit-Snacks",
   "isDesktopOnly": false
 }
