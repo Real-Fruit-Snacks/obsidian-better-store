@@ -7,6 +7,7 @@
   import { getInstalledIds, type TabId } from "./store-context";
   import FilterSidebar from "./FilterSidebar.svelte";
   import PluginCard from "./PluginCard.svelte";
+  import DetailPane from "./DetailPane.svelte";
 
   let { plugin, view }: { plugin: BetterStorePlugin; view: BetterStoreView } = $props();
 
@@ -131,7 +132,9 @@
           {/each}
         </div>
       </main>
-      <!-- detail pane mounts here (Task 11) -->
+      {#if selected}
+        <DetailPane {plugin} {view} entry={selected} onClose={() => (selected = null)} />
+      {/if}
     </div>
   {/if}
 </div>

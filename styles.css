@@ -241,3 +241,78 @@
   gap: 4px;
   margin-top: auto;
 }
+
+/* Detail pane */
+.bs-detail {
+  width: 380px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border-left: 1px solid var(--background-modifier-border);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bs-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.bs-detail-title h3 {
+  margin: 0;
+}
+
+.bs-detail-author {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.bs-detail-close {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+
+.bs-detail-stats {
+  display: flex;
+  gap: 14px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.bs-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.bs-detail-note {
+  font-size: var(--font-ui-small);
+  color: var(--text-faint);
+}
+
+.bs-releases summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.bs-releases ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: var(--font-ui-small);
+}
+
+.bs-readme {
+  border-top: 1px solid var(--background-modifier-border);
+  padding-top: 10px;
+}
+
+.bs-readme img {
+  max-width: 100%;
+}
