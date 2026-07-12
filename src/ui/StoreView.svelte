@@ -209,12 +209,15 @@
       <main class="bs-main">
         <div class="bs-count">{visible.length.toLocaleString()} plugins</div>
         {#if tree}
-          <TreeView
-            model={tree}
-            {selected}
-            {installedIds}
-            onSelect={(entry) => (selected = entry)}
-          />
+          {#key effectiveFilters.sort}
+            <TreeView
+              model={tree}
+              sort={effectiveFilters.sort}
+              {selected}
+              {installedIds}
+              onSelect={(entry) => (selected = entry)}
+            />
+          {/key}
         {:else}
           <div class="bs-grid">
             {#each shown as entry (entry.id)}

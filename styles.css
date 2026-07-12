@@ -547,7 +547,25 @@
 .bs-tree-folder:hover,
 .bs-tree-item:hover,
 .bs-tree-more:hover {
-  background: var(--background-modifier-hover);
+  background-color: var(--background-modifier-hover);
+}
+
+/* Indent guides — faint vertical lines under the parent folder's icon,
+   drawn as background gradients so they survive hover/selected tints. */
+.bs-tree [data-depth="1"] {
+  background-image: linear-gradient(var(--background-modifier-border), var(--background-modifier-border));
+  background-size: 1px 100%;
+  background-position: 15px 0;
+  background-repeat: no-repeat;
+}
+
+.bs-tree [data-depth="2"] {
+  background-image:
+    linear-gradient(var(--background-modifier-border), var(--background-modifier-border)),
+    linear-gradient(var(--background-modifier-border), var(--background-modifier-border));
+  background-size: 1px 100%, 1px 100%;
+  background-position: 15px 0, 33px 0;
+  background-repeat: no-repeat, no-repeat;
 }
 
 .bs-tree-folder {
@@ -601,7 +619,7 @@
 }
 
 .bs-tree-item-selected {
-  background: color-mix(in srgb, var(--interactive-accent) 14%, transparent);
+  background-color: color-mix(in srgb, var(--interactive-accent) 14%, transparent);
 }
 
 .bs-tree-item-selected .bs-tree-name {

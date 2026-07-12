@@ -6,26 +6,51 @@
 
   let {
     model,
+    sort,
     selected,
     installedIds,
     onSelect,
   }: {
     model: TreeModel;
+    sort: string;
     selected: PluginEntry | null;
     installedIds: Set<string>;
     onSelect: (entry: PluginEntry) => void;
   } = $props();
 
   const FOLDER_PAGE = 150;
+  const EXPANDED_KEY = "better-store-tree-expanded";
 
-  let expanded = $state<Set<string>>(new Set());
+  // Expanded folders persist per sort mode, so the tree reopens where the
+  // user left it. The parent keys this component by sort, so init is enough.
+  function loadExpanded(): Set<string> {
+    try {
+      const all = JSON.parse(localStorage.getItem(EXPANDED_KEY) ?? "{}") as Record<string, unknown>;
+      return new Set(Array.isArray(all[sort]) ? (all[sort] as string[]) : []);
+    } catch {
+      return new Set();
+    }
+  }
+
+  let expanded = $state<Set<string>>(loadExpanded());
   let folderLimits = $state<Record<string, number>>({});
+
+  function persistExpanded(): void {
+    try {
+      const all = JSON.parse(localStorage.getItem(EXPANDED_KEY) ?? "{}") as Record<string, unknown>;
+      all[sort] = [...expanded];
+      localStorage.setItem(EXPANDED_KEY, JSON.stringify(all));
+    } catch {
+      // storage unavailable — expansion just won't persist
+    }
+  }
 
   function toggleFolder(key: string): void {
     const next = new Set(expanded);
     if (next.has(key)) next.delete(key);
     else next.add(key);
     expanded = next;
+    persistExpanded();
   }
 
   function showMore(key: string): void {
@@ -47,6 +72,7 @@
   <div
     class="bs-tree-folder"
     style={`--bs-depth:${depth}`}
+    data-depth={depth}
     role="button"
     tabindex="0"
     onclick={() => toggleFolder(key)}
@@ -62,6 +88,7 @@
         class="bs-tree-item"
         class:bs-tree-item-selected={selected?.id === entry.id}
         style={`--bs-depth:${depth + 1}`}
+        data-depth={depth + 1}
         role="button"
         tabindex="0"
         onclick={() => onSelect(entry)}
@@ -77,6 +104,7 @@
       <div
         class="bs-tree-more"
         style={`--bs-depth:${depth + 1}`}
+        data-depth={depth + 1}
         role="button"
         tabindex="0"
         onclick={() => showMore(key)}
