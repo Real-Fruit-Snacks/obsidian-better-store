@@ -1,0 +1,9 @@
+{
+  "id": "better-store",
+  "name": "Better Store",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "A polished community plugin browser: filters, rich details, trending, and installed-plugin management.",
+  "author": "Matt",
+  "isDesktopOnly": false
+}
