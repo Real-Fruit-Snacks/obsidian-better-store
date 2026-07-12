@@ -554,11 +554,7 @@
   color: var(--text-normal);
 }
 
-.bs-tree-folder > .bs-icon:first-child {
-  color: var(--text-faint);
-}
-
-.bs-tree-folder > .bs-icon:nth-child(2) {
+.bs-tree-folder > .bs-icon {
   color: var(--interactive-accent);
 }
 
@@ -583,7 +579,7 @@
   color: var(--text-muted);
 }
 
-.bs-tree-stale > .bs-icon:nth-child(2) {
+.bs-tree-stale > .bs-icon {
   color: var(--text-muted);
 }
 

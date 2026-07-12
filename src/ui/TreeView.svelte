@@ -52,7 +52,6 @@
     onclick={() => toggleFolder(key)}
     onkeydown={(e) => activate(e, () => toggleFolder(key))}
   >
-    <Icon name={expanded.has(key) ? "chevron-down" : "chevron-right"} />
     <Icon name={expanded.has(key) ? "folder-open" : "folder"} />
     <span class="bs-tree-label">{group.label}</span>
     <span class="bs-tree-count">{group.entries.length.toLocaleString()}</span>
@@ -103,8 +102,7 @@
       onclick={() => toggleFolder("__stale__")}
       onkeydown={(e) => activate(e, () => toggleFolder("__stale__"))}
     >
-      <Icon name={expanded.has("__stale__") ? "chevron-down" : "chevron-right"} />
-      <Icon name="archive" />
+      <Icon name={expanded.has("__stale__") ? "folder-open" : "folder"} />
       <span class="bs-tree-label">Stale (12+ months)</span>
       <span class="bs-tree-count">{staleTotal.toLocaleString()}</span>
     </div>
