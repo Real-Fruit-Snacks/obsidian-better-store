@@ -802,3 +802,217 @@
     transition: none;
   }
 }
+
+/* Health chip */
+.bs-health {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: var(--font-ui-small);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.bs-health-healthy {
+  color: var(--interactive-accent);
+  border-color: color-mix(in srgb, var(--interactive-accent) 45%, var(--background-modifier-border));
+  background: color-mix(in srgb, var(--interactive-accent) 9%, transparent);
+}
+
+.bs-health-aging {
+  color: var(--color-yellow, #e0ac00);
+  border-color: color-mix(in srgb, var(--color-yellow, #e0ac00) 45%, var(--background-modifier-border));
+  background: color-mix(in srgb, var(--color-yellow, #e0ac00) 9%, transparent);
+}
+
+.bs-health-at-risk {
+  color: var(--color-red, #e05252);
+  border-color: color-mix(in srgb, var(--color-red, #e05252) 45%, var(--background-modifier-border));
+  background: color-mix(in srgb, var(--color-red, #e05252) 9%, transparent);
+}
+
+/* Sparkline */
+.bs-spark {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bs-spark svg {
+  display: block;
+}
+
+.bs-spark-label {
+  font-size: 10.5px;
+  color: var(--text-faint);
+}
+
+/* Copy actions */
+.bs-copy-actions {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.bs-copy-btn {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 2px 4px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.bs-copy-btn:hover {
+  color: var(--text-normal);
+}
+
+/* Similar plugins */
+.bs-similar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Filter presets */
+.bs-preset-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.bs-preset-row select {
+  flex: 1;
+  min-width: 0;
+}
+
+.bs-preset-save {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  box-shadow: none;
+  border-radius: var(--radius-s);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 7px;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.bs-preset-save:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+
+/* Tree tools */
+.bs-tree-tools {
+  display: flex;
+  gap: 6px;
+  padding: 0 0 8px;
+}
+
+.bs-tree-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--text-faint);
+  font-size: var(--font-ui-small);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-s);
+}
+
+.bs-tree-tool:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+
+/* Profiles */
+.bs-profile-select {
+  max-width: 160px;
+}
+
+/* Skeleton loading */
+.bs-skeleton-card {
+  cursor: default;
+  pointer-events: none;
+}
+
+.bs-skel {
+  height: 10px;
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--background-modifier-hover) 25%,
+    var(--background-modifier-border) 50%,
+    var(--background-modifier-hover) 75%
+  );
+  background-size: 200% 100%;
+  animation: bs-shimmer 1.4s ease infinite;
+}
+
+.bs-skel-thin {
+  height: 7px;
+}
+
+.bs-skel-chip {
+  height: 14px;
+  width: 52px;
+  margin-top: auto;
+}
+
+@keyframes bs-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-skel {
+    animation: none;
+  }
+}
+
+/* Empty state */
+.bs-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 64px 24px;
+  color: var(--text-muted);
+}
+
+.bs-empty .bs-icon svg {
+  width: 32px;
+  height: 32px;
+  color: var(--text-faint);
+}
+
+.bs-empty p {
+  margin: 0;
+}
+
+.bs-empty-clear {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+  padding: 5px 14px;
+  border-radius: var(--radius-s);
+  font-size: var(--font-ui-small);
+}
+
+/* Import modal */
+.bs-import-textarea {
+  width: 100%;
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-small);
+  resize: vertical;
+}

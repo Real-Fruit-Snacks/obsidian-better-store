@@ -1,12 +1,27 @@
 <script lang="ts">
   import { ALL_CATEGORIES } from "../data/categories";
   import type { FilterState, SortKey } from "../data/filter";
+  import type { FilterPreset } from "../settings";
+  import Icon from "./Icon.svelte";
 
   let {
     filters,
     showSort,
+    presets,
     onChange,
-  }: { filters: FilterState; showSort: boolean; onChange: (next: FilterState) => void } = $props();
+    onSavePreset,
+  }: {
+    filters: FilterState;
+    showSort: boolean;
+    presets: FilterPreset[];
+    onChange: (next: FilterState) => void;
+    onSavePreset: () => void;
+  } = $props();
+
+  function applyPreset(name: string): void {
+    const preset = presets.find((p) => p.name === name);
+    if (preset) onChange({ ...preset.state });
+  }
 
   const SORTS: { key: SortKey; label: string }[] = [
     { key: "downloads", label: "Downloads" },
@@ -39,6 +54,31 @@
     value={filters.query}
     oninput={(e) => onChange({ ...filters, query: e.currentTarget.value })}
   />
+
+  <div class="bs-field">
+    <span class="bs-field-label">Presets</span>
+    <div class="bs-preset-row">
+      {#if presets.length > 0}
+        <select
+          class="dropdown"
+          aria-label="Apply filter preset"
+          onchange={(e) => {
+            applyPreset(e.currentTarget.value);
+            e.currentTarget.value = "";
+          }}
+        >
+          <option value="" selected disabled>Apply preset…</option>
+          {#each presets as p (p.name)}<option value={p.name}>{p.name}</option>{/each}
+        </select>
+      {/if}
+      <button
+        class="bs-preset-save"
+        title="Save current filters as a preset"
+        aria-label="Save current filters as a preset"
+        onclick={onSavePreset}
+      ><Icon name="save" /></button>
+    </div>
+  </div>
 
   {#if showSort}
     <label class="bs-field">

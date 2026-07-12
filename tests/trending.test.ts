@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { appendSnapshot, computeDeltas, type Snapshot } from "../src/data/trending";
+import { appendSnapshot, computeDeltas, historyFor, type Snapshot } from "../src/data/trending";
 
 const HOUR = 3_600_000;
 
@@ -39,5 +39,19 @@ describe("computeDeltas", () => {
       { ts: 14 * HOUR, downloads: { a: 150, b: 60, brandNew: 999 } },
     ];
     expect(computeDeltas(history)).toEqual({ a: 50, b: 10 });
+  });
+});
+
+describe("historyFor", () => {
+  it("extracts one plugin's download series, skipping snapshots that miss it", () => {
+    const history: Snapshot[] = [
+      { ts: 1, downloads: { a: 100 } },
+      { ts: 2, downloads: { b: 5 } },
+      { ts: 3, downloads: { a: 130, b: 6 } },
+    ];
+    expect(historyFor(history, "a")).toEqual([
+      { ts: 1, downloads: 100 },
+      { ts: 3, downloads: 130 },
+    ]);
   });
 });

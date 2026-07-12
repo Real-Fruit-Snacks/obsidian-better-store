@@ -173,6 +173,11 @@ describe("getReadme / getLatestVersion", () => {
     expect(io.fetchLog).toEqual([]);
   });
 
+  it("falls back to lowercase readme.md when README.md is missing", async () => {
+    io.responses.set("https://raw.githubusercontent.com/c/d/HEAD/readme.md", "# lower");
+    expect(await service.getReadme("c/d")).toBe("# lower");
+  });
+
   it("getLatestVersion returns null on failure", async () => {
     expect(await service.getLatestVersion("a/missing")).toBeNull();
   });

@@ -22,6 +22,7 @@ verify:
   script:
     - npm ci
     - npm run check
+    - npm run check:svelte
     - npm test
 
 build:

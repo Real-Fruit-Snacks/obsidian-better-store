@@ -31,3 +31,8 @@ export function computeDeltas(history: Snapshot[]): Record<string, number> {
   }
   return out;
 }
+
+/** One plugin's download series across the stored snapshots. */
+export function historyFor(history: Snapshot[], id: string): { ts: number; downloads: number }[] {
+  return history.filter((s) => id in s.downloads).map((s) => ({ ts: s.ts, downloads: s.downloads[id] }));
+}

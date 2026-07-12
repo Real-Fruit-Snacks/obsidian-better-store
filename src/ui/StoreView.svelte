@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { Menu } from "obsidian";
+  import { onMount, untrack } from "svelte";
+  import { Menu, Notice } from "obsidian";
   import type BetterStorePlugin from "../main";
   import type { BetterStoreView } from "../view";
   import type { PluginEntry } from "../data/types";
   import { EMPTY_FILTER, filterPlugins, type FilterState, type SortKey } from "../data/filter";
   import { getInstalledIds, type TabId } from "./store-context";
   import { NEW_WINDOW_DAYS } from "../settings";
+  import { similarPlugins } from "../data/similar";
+  import { NameModal } from "./modals";
   import FilterSidebar from "./FilterSidebar.svelte";
   import PluginCard from "./PluginCard.svelte";
   import DetailPane from "./DetailPane.svelte";
@@ -63,6 +65,29 @@
   let showNewBadges = $derived.by(() => {
     void settingsTick;
     return plugin.settings.showNewBadges;
+  });
+
+  let filterPresets = $derived.by(() => {
+    void settingsTick;
+    return plugin.settings.filterPresets;
+  });
+
+  let similar = $derived.by(() => {
+    void settingsTick;
+    return selected && plugin.settings.showSimilar ? similarPlugins(selected, entries, 5) : [];
+  });
+
+  // Recently-viewed capture feeds the quick-jump ranking.
+  $effect(() => {
+    const id = selected?.id;
+    if (!id) return;
+    untrack(() => {
+      if (!plugin.settings.trackRecentlyViewed) return;
+      const current = plugin.settings.ui.recentlyViewed;
+      if (current[0] === id) return;
+      plugin.settings.ui.recentlyViewed = [id, ...current.filter((r) => r !== id)].slice(0, 20);
+      void plugin.saveSettings();
+    });
   });
 
   let visible = $derived.by(() => {
@@ -213,6 +238,20 @@
     menu.showAtMouseEvent(e);
   }
 
+  function savePreset(): void {
+    new NameModal(plugin.app, "Save filter preset", (name) => {
+      const withoutSameName = plugin.settings.filterPresets.filter((p) => p.name !== name);
+      plugin.settings.filterPresets = [...withoutSameName, { name, state: { ...filters } }];
+      void plugin.saveSettings();
+      new Notice(`Preset "${name}" saved.`);
+    }).open();
+  }
+
+  function resetFilters(): void {
+    filters = { ...EMPTY_FILTER, sort: plugin.settings.defaultSort };
+    renderLimit = PAGE_SIZE;
+  }
+
   async function toggleFavorite(id: string): Promise<void> {
     plugin.settings.favoritePlugins = plugin.settings.favoritePlugins.includes(id)
       ? plugin.settings.favoritePlugins.filter((f) => f !== id)
@@ -297,7 +336,20 @@
   {/if}
 
   {#if loading}
-    <div class="bs-status">Loading plugin catalog…</div>
+    <div class="bs-body" aria-label="Loading plugin catalog">
+      <main class="bs-main">
+        <div class="bs-grid" aria-hidden="true">
+          {#each Array(12) as _, i (i)}
+            <div class="bs-card bs-skeleton-card">
+              <div class="bs-skel" style="width:55%"></div>
+              <div class="bs-skel bs-skel-thin" style="width:90%"></div>
+              <div class="bs-skel bs-skel-thin" style="width:70%"></div>
+              <div class="bs-skel bs-skel-chip"></div>
+            </div>
+          {/each}
+        </div>
+      </main>
+    </div>
   {:else if error}
     <div class="bs-status bs-error">Failed to load the plugin catalog: {error}</div>
   {:else if tab === "installed"}
@@ -312,6 +364,8 @@
           entry={selected}
           installed={installedIds.has(selected.id)}
           starred={favoriteIds.has(selected.id)}
+          {similar}
+          onSelectEntry={(entry) => (selected = entry)}
           onToggleStar={() => void toggleFavorite(selected!.id)}
           onClose={() => (selected = null)}
         />
@@ -319,10 +373,22 @@
     </div>
   {:else}
     <div class="bs-body">
-      <FilterSidebar {filters} showSort={tab === "all"} onChange={(next) => { filters = next; renderLimit = PAGE_SIZE; }} />
+      <FilterSidebar
+        {filters}
+        showSort={tab === "all"}
+        presets={filterPresets}
+        onChange={(next) => { filters = next; renderLimit = PAGE_SIZE; }}
+        onSavePreset={savePreset}
+      />
       <main class="bs-main">
         <div class="bs-count">{visible.length.toLocaleString()} plugins</div>
-        {#if tree}
+        {#if visible.length === 0}
+          <div class="bs-empty">
+            <Icon name="search-x" />
+            <p>No plugins match the current filters.</p>
+            <button class="bs-empty-clear" onclick={resetFilters}>Clear filters</button>
+          </div>
+        {:else if tree}
           {#key effectiveFilters.sort}
             <TreeView
               model={tree}
@@ -362,6 +428,8 @@
           entry={selected}
           installed={installedIds.has(selected.id)}
           starred={favoriteIds.has(selected.id)}
+          {similar}
+          onSelectEntry={(entry) => (selected = entry)}
           onToggleStar={() => void toggleFavorite(selected!.id)}
           onClose={() => (selected = null)}
         />

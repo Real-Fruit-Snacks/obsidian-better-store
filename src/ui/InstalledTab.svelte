@@ -1,10 +1,13 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { Notice } from "obsidian";
   import type BetterStorePlugin from "../main";
   import type { PluginEntry } from "../data/types";
   import { buildInstalledInfo, type InstalledInfo } from "../data/installed";
+  import type { PluginProfile } from "../data/profiles";
   import { formatAge } from "../data/format";
   import { getPluginsApi } from "./store-context";
+  import { NameModal } from "./modals";
   import Icon from "./Icon.svelte";
 
   let {
@@ -94,6 +97,26 @@
     window.open(`obsidian://show-plugin?id=${encodeURIComponent(id)}`);
   }
 
+  let profileNames = $state(plugin.settings.profiles.map((p) => p.name));
+
+  function saveProfile(): void {
+    new NameModal(plugin.app, "Save plugin profile", (name) => {
+      const pluginIds = [...api.enabledPlugins].filter((id) => id !== plugin.manifest.id && id in api.manifests);
+      const withoutSameName = plugin.settings.profiles.filter((p) => p.name !== name);
+      plugin.settings.profiles = [...withoutSameName, { name, pluginIds }];
+      void plugin.saveSettings();
+      profileNames = plugin.settings.profiles.map((p) => p.name);
+      new Notice(`Profile "${name}" saved (${pluginIds.length} plugins).`);
+    }).open();
+  }
+
+  async function applyProfileByName(name: string): Promise<void> {
+    const profile: PluginProfile | undefined = plugin.settings.profiles.find((p) => p.name === name);
+    if (!profile) return;
+    await plugin.applyProfile(profile);
+    rebuild(lastLatest);
+  }
+
   function toggleSelect(id: string): void {
     if (id === plugin.manifest.id) return;
     const next = new Set(selectedIds);
@@ -137,6 +160,23 @@
       onclick={() => (updatesOnly = !updatesOnly)}
     >
       Updates{#if !checking}&nbsp;({updateCount}){/if}
+    </button>
+    {#if profileNames.length > 0}
+      <select
+        class="dropdown bs-profile-select"
+        aria-label="Apply plugin profile"
+        onchange={(e) => {
+          const name = e.currentTarget.value;
+          e.currentTarget.value = "";
+          void applyProfileByName(name);
+        }}
+      >
+        <option value="" selected disabled>Profiles…</option>
+        {#each profileNames as name (name)}<option value={name}>{name}</option>{/each}
+      </select>
+    {/if}
+    <button class="bs-chip" title="Save the currently enabled plugins as a profile" onclick={saveProfile}>
+      Save profile
     </button>
     {#if selectedIds.size > 0}
       <span class="bs-bulk-actions">

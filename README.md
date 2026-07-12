@@ -34,6 +34,13 @@ It deliberately does **not** install, update, or remove plugin files itself — 
 - **Compatibility warnings** — flags plugins whose `minAppVersion` exceeds your Obsidian version before you install.
 - **Keyboard navigation** — arrow keys move through cards and tree rows, Enter opens details, Esc closes the pane.
 - **Ignore rules** — hide individual plugins, everything by an author, or whole categories.
+- **Plugin profiles** — save named enable-sets ("Writing", "Minimal") and switch between them in one click, from the Installed tab or the command palette.
+- **Export / import** — copy your installed list as Markdown or JSON; paste a list back to see what's missing and star it as an install shopping list.
+- **Maintenance health** — a healthy / aging / at-risk chip on the detail pane from update recency and release cadence (togglable).
+- **Download history** — a sparkline built from your own catalog snapshots (togglable).
+- **Similar plugins** — related plugins by shared categories and keywords, one click away in the detail pane (togglable).
+- **Filter presets** — save sidebar filter combinations under a name and reapply them from a dropdown.
+- **Copy actions** — repository URL and BRAT string copy buttons in the detail pane.
 
 ## Installation
 
@@ -58,7 +65,10 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 | Command | Action |
 | --- | --- |
 | `Better Store: Open store` | Opens (or reveals) the store tab |
-| `Better Store: Search plugins` | Fuzzy quick-jump to any plugin's details |
+| `Better Store: Search plugins` | Fuzzy quick-jump to any plugin's details (recently viewed rank first) |
+| `Better Store: Apply plugin profile` | Switch to a saved enable-set |
+| `Better Store: Export plugin list (Markdown / JSON)` | Copies your installed list to the clipboard |
+| `Better Store: Import plugin list` | Paste an exported list and see what's missing |
 
 ### Settings
 
@@ -69,6 +79,9 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 | Default sort | Downloads | Downloads, recently updated, name, or trending. |
 | Hide installed by default | Off | Start browsing with installed plugins hidden. |
 | Show "New" badges | On | Highlight plugins that entered the registry in the last 14 days. |
+| Track recently viewed | On | Ranks recently opened plugins first in quick-jump search. |
+| Detail pane toggles | On | Maintenance health chip, similar plugins, download history chart — each individually togglable. |
+| Profiles / Filter presets | — | Review and delete saved profiles and presets. |
 | Check for updates in the background | On | Checks installed plugins on the cache-lifetime cadence and marks the ribbon icon. |
 | Notify when updates are found | On | Shows a notice when the background check finds updates. |
 | Starred plugins | — | Review and unstar favorites. |

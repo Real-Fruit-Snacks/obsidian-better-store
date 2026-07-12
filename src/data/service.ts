@@ -1,7 +1,7 @@
 import type { PluginEntry } from "./types";
 import { mergeRegistry, parseRegistry, slimStats } from "./registry";
 import { classifyPlugin } from "./categories";
-import { appendSnapshot, computeDeltas, type Snapshot } from "./trending";
+import { appendSnapshot, computeDeltas, historyFor, type Snapshot } from "./trending";
 import { newIdsWithin, updateKnownIds, type KnownIds } from "./newness";
 
 export const REGISTRY_URL =
@@ -150,9 +150,23 @@ export class DataService {
   async getReadme(repo: string): Promise<string> {
     const hit = this.readmes.get(repo);
     if (hit != null) return hit;
-    const text = await this.io.fetchText(`https://raw.githubusercontent.com/${repo}/HEAD/README.md`);
-    this.readmes.set(repo, text);
-    return text;
+    // raw.githubusercontent.com is case-sensitive; try common casings.
+    let lastError: unknown = new Error(`no README found for ${repo}`);
+    for (const name of ["README.md", "readme.md", "Readme.md"]) {
+      try {
+        const text = await this.io.fetchText(`https://raw.githubusercontent.com/${repo}/HEAD/${name}`);
+        this.readmes.set(repo, text);
+        return text;
+      } catch (e) {
+        lastError = e;
+      }
+    }
+    throw lastError;
+  }
+
+  /** One plugin's download series from the stored trending snapshots. */
+  async getDownloadHistory(id: string): Promise<{ ts: number; downloads: number }[]> {
+    return historyFor((await this.readJson<Snapshot[]>("history.json")) ?? [], id);
   }
 
   async getEnrichment(repo: string): Promise<Enrichment> {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import { apiVersion, MarkdownRenderer, sanitizeHTMLToDom } from "obsidian";
+  import { apiVersion, MarkdownRenderer, Notice, sanitizeHTMLToDom } from "obsidian";
   import type BetterStorePlugin from "../main";
   import type { BetterStoreView } from "../view";
   import type { PluginEntry } from "../data/types";
@@ -8,7 +8,9 @@
   import { rewriteReadmeUrls } from "../data/readme";
   import { formatAge, formatCount } from "../data/format";
   import { compareVersions } from "../data/versions";
+  import { assessHealth } from "../data/health";
   import Icon from "./Icon.svelte";
+  import Sparkline from "./Sparkline.svelte";
 
   let {
     plugin,
@@ -16,6 +18,8 @@
     entry,
     installed,
     starred,
+    similar,
+    onSelectEntry,
     onToggleStar,
     onClose,
   }: {
@@ -24,6 +28,8 @@
     entry: PluginEntry;
     installed: boolean;
     starred: boolean;
+    similar: PluginEntry[];
+    onSelectEntry: (entry: PluginEntry) => void;
     onToggleStar: () => void;
     onClose: () => void;
   } = $props();
@@ -32,6 +38,7 @@
   let enrichment = $state<Enrichment | null>(null);
   let enrichError = $state<string | null>(null);
   let readmeLoading = $state(true);
+  let sparkPoints = $state<{ ts: number; downloads: number }[]>([]);
 
   const MIN_WIDTH = 300;
   const MAX_WIDTH = 900;
@@ -71,6 +78,7 @@
     readmeLoading = true;
     enrichment = null;
     enrichError = null;
+    sparkPoints = [];
     el.empty();
 
     try {
@@ -87,6 +95,15 @@
       if (current.id === entry.id) readmeLoading = false;
     }
 
+    if (plugin.settings.showSparkline) {
+      try {
+        const points = await plugin.service.getDownloadHistory(current.id);
+        if (current.id === entry.id) sparkPoints = points;
+      } catch {
+        // sparkline is optional
+      }
+    }
+
     try {
       const e = await plugin.service.getEnrichment(current.repo);
       if (current.id === entry.id) enrichment = e;
@@ -101,9 +118,23 @@
     window.open(`obsidian://show-plugin?id=${encodeURIComponent(entry.id)}`);
   }
 
+  async function copyText(text: string, label: string): Promise<void> {
+    await navigator.clipboard.writeText(text);
+    new Notice(`Copied ${label}.`);
+  }
+
   let incompatible = $derived(
     enrichment?.minAppVersion != null && compareVersions(enrichment.minAppVersion, apiVersion) > 0
   );
+
+  let health = $derived(
+    plugin.settings.showHealth && enrichment
+      ? assessHealth({ updated: entry.updated, releases: enrichment.releases, now: Date.now() })
+      : null
+  );
+
+  const HEALTH_LABEL = { healthy: "Actively maintained", aging: "Aging", "at-risk": "At risk" } as const;
+  const HEALTH_ICON = { healthy: "check-circle", aging: "clock", "at-risk": "alert-triangle" } as const;
 
   /** Render a release's markdown notes with the same sanitize pass as the README. */
   function releaseNotes(node: HTMLElement, body: string) {
@@ -158,6 +189,17 @@
     {/if}
   </div>
 
+  {#if health}
+    <div class={`bs-health bs-health-${health.level}`} title={health.reasons.join(" · ")}>
+      <Icon name={HEALTH_ICON[health.level]} />
+      {HEALTH_LABEL[health.level]}
+    </div>
+  {/if}
+
+  {#if sparkPoints.length >= 2}
+    <Sparkline points={sparkPoints} />
+  {/if}
+
   {#if incompatible && enrichment}
     <div class="bs-compat-warning">
       <Icon name="alert-triangle" />
@@ -173,10 +215,39 @@
     {#if enrichment?.fundingUrl}
       <a href={enrichment.fundingUrl} target="_blank" rel="noopener">Support author</a>
     {/if}
+    <span class="bs-copy-actions">
+      <button
+        class="bs-copy-btn"
+        title="Copy repository URL"
+        aria-label="Copy repository URL"
+        onclick={() => void copyText(`https://github.com/${entry.repo}`, "repository URL")}
+      ><Icon name="link" /></button>
+      <button
+        class="bs-copy-btn"
+        title="Copy BRAT string"
+        aria-label="Copy BRAT string"
+        onclick={() => void copyText(entry.repo, "BRAT string")}
+      ><Icon name="clipboard-copy" /></button>
+    </span>
+  </div>
+
+  <div class="bs-card-cats">
+    {#each entry.categories as cat (cat)}<span class="bs-chip bs-chip-small">{cat}</span>{/each}
   </div>
 
   {#if enrichError}
     <div class="bs-detail-note">{enrichError}</div>
+  {/if}
+
+  {#if similar.length > 0}
+    <div class="bs-similar">
+      <span class="bs-field-label">Similar plugins</span>
+      <div class="bs-cats">
+        {#each similar as s (s.id)}
+          <button class="bs-chip" onclick={() => onSelectEntry(s)}>{s.name}</button>
+        {/each}
+      </div>
+    </div>
   {/if}
 
   {#if enrichment && enrichment.releases.length > 0}

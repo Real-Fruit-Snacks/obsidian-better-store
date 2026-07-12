@@ -16,4 +16,12 @@ describe("compareVersions", () => {
   it("tolerates non-numeric junk segments as 0", () => {
     expect(compareVersions("1.beta", "1.0")).toBe(0);
   });
+
+  it("orders pre-releases below their release", () => {
+    expect(compareVersions("1.0.0-beta", "1.0.0")).toBeLessThan(0);
+    expect(compareVersions("1.0.0", "1.0.0-beta")).toBeGreaterThan(0);
+    expect(compareVersions("1.0.0-alpha", "1.0.0-beta")).toBeLessThan(0);
+    expect(compareVersions("1.0.0-beta", "1.0.0-beta")).toBe(0);
+    expect(compareVersions("1.0.1-beta", "1.0.0")).toBeGreaterThan(0);
+  });
 });

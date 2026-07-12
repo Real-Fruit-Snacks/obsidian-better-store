@@ -1,9 +1,12 @@
 import { Notice, Plugin, requestUrl } from "obsidian";
 import { DataService, type ServiceIO } from "./data/service";
 import { compareVersions } from "./data/versions";
+import { buildExportList, exportJson, exportMarkdown } from "./data/portability";
+import { diffProfile, type PluginProfile } from "./data/profiles";
 import { BetterStoreSettingTab, DEFAULT_SETTINGS, type BetterStoreSettings } from "./settings";
 import { BetterStoreView, VIEW_TYPE_BETTER_STORE } from "./view";
 import { QuickJumpModal } from "./ui/QuickJumpModal";
+import { ImportModal, ProfileSuggestModal } from "./ui/modals";
 import { getPluginsApi } from "./ui/store-context";
 
 export default class BetterStorePlugin extends Plugin {
@@ -30,6 +33,26 @@ export default class BetterStorePlugin extends Plugin {
       name: "Search plugins",
       callback: () => void this.openQuickJump(),
     });
+    this.addCommand({
+      id: "export-plugin-list",
+      name: "Export plugin list (Markdown)",
+      callback: () => void this.exportPluginList("markdown"),
+    });
+    this.addCommand({
+      id: "export-plugin-list-json",
+      name: "Export plugin list (JSON)",
+      callback: () => void this.exportPluginList("json"),
+    });
+    this.addCommand({
+      id: "import-plugin-list",
+      name: "Import plugin list",
+      callback: () => new ImportModal(this.app, this).open(),
+    });
+    this.addCommand({
+      id: "apply-profile",
+      name: "Apply plugin profile",
+      callback: () => new ProfileSuggestModal(this.app, this).open(),
+    });
 
     this.app.workspace.onLayoutReady(() => {
       if (this.settings.backgroundUpdateCheck) {
@@ -46,9 +69,42 @@ export default class BetterStorePlugin extends Plugin {
   async openQuickJump(): Promise<void> {
     try {
       const catalog = await this.service.loadCatalog();
-      new QuickJumpModal(this.app, catalog.entries, (entry) => void this.openPluginDetail(entry.id)).open();
+      // Recently viewed plugins float to the top of the (stable-sorted) list.
+      const rank = new Map(this.settings.ui.recentlyViewed.map((id, i) => [id, i]));
+      const entries = this.settings.trackRecentlyViewed
+        ? [...catalog.entries].sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity))
+        : catalog.entries;
+      new QuickJumpModal(this.app, entries, (entry) => void this.openPluginDetail(entry.id)).open();
     } catch {
       new Notice("Better Store: could not load the plugin catalog.");
+    }
+  }
+
+  async exportPluginList(format: "markdown" | "json"): Promise<void> {
+    const api = getPluginsApi(this.app);
+    const list = buildExportList(api.manifests, new Set(api.enabledPlugins));
+    const text =
+      format === "json" ? exportJson(list) : exportMarkdown(list, new Date().toISOString().slice(0, 10));
+    await navigator.clipboard.writeText(text);
+    new Notice(`Better Store: copied ${list.length} plugins to the clipboard as ${format === "json" ? "JSON" : "Markdown"}.`);
+  }
+
+  /** Enable/disable installed plugins to match a saved profile. */
+  async applyProfile(profile: PluginProfile): Promise<void> {
+    const api = getPluginsApi(this.app);
+    const diff = diffProfile(
+      profile.pluginIds,
+      new Set(api.enabledPlugins),
+      new Set(Object.keys(api.manifests)),
+      this.manifest.id
+    );
+    try {
+      for (const id of diff.toEnable) await api.enablePluginAndSave(id);
+      for (const id of diff.toDisable) await api.disablePluginAndSave(id);
+      const missing = diff.missing.length > 0 ? `, ${diff.missing.length} not installed` : "";
+      new Notice(`Profile "${profile.name}": ${diff.toEnable.length} enabled, ${diff.toDisable.length} disabled${missing}.`);
+    } catch (e) {
+      new Notice(`Profile "${profile.name}" failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 

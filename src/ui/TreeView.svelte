@@ -75,6 +75,25 @@
   }
 
   let staleTotal = $derived(model.stale.reduce((n, g) => n + g.entries.length, 0));
+
+  function allKeys(): string[] {
+    const keys = model.groups.map((g) => g.label);
+    if (staleTotal > 0) {
+      keys.push("__stale__");
+      for (const g of model.stale) keys.push(`stale:${g.label}`);
+    }
+    return keys;
+  }
+
+  function expandAll(): void {
+    expanded = new Set(allKeys());
+    persistExpanded();
+  }
+
+  function collapseAll(): void {
+    expanded = new Set();
+    persistExpanded();
+  }
 </script>
 
 {#snippet folder(group: TreeGroup, key: string, depth: number)}
@@ -130,6 +149,10 @@
 {/snippet}
 
 <div class="bs-tree" use:treeNav>
+  <div class="bs-tree-tools">
+    <button class="bs-tree-tool" onclick={expandAll}><Icon name="chevrons-up-down" />Expand all</button>
+    <button class="bs-tree-tool" onclick={collapseAll}><Icon name="chevrons-down-up" />Collapse all</button>
+  </div>
   {#each model.groups as group (group.label)}
     {@render folder(group, group.label, 0)}
   {/each}

@@ -1,12 +1,20 @@
 import { PluginSettingTab, type App, type Setting, type SettingDefinitionItem } from "obsidian";
-import type { SortKey } from "./data/filter";
+import type { FilterState, SortKey } from "./data/filter";
+import type { PluginProfile } from "./data/profiles";
 import type BetterStorePlugin from "./main";
+import { ImportModal } from "./ui/modals";
 
 /** UI state persisted in plugin data (not shown in the settings tab). */
 export interface UiState {
   layout: "grid" | "tree";
   detailWidth: number;
   treeExpanded: Record<string, string[]>;
+  recentlyViewed: string[];
+}
+
+export interface FilterPreset {
+  name: string;
+  state: FilterState;
 }
 
 export interface BetterStoreSettings {
@@ -21,6 +29,12 @@ export interface BetterStoreSettings {
   showNewBadges: boolean;
   backgroundUpdateCheck: boolean;
   updateNotice: boolean;
+  showHealth: boolean;
+  showSimilar: boolean;
+  showSparkline: boolean;
+  trackRecentlyViewed: boolean;
+  profiles: PluginProfile[];
+  filterPresets: FilterPreset[];
   ui: UiState;
 }
 
@@ -36,13 +50,19 @@ export const DEFAULT_SETTINGS: BetterStoreSettings = {
   showNewBadges: true,
   backgroundUpdateCheck: true,
   updateNotice: true,
-  ui: { layout: "grid", detailWidth: 380, treeExpanded: {} },
+  showHealth: true,
+  showSimilar: true,
+  showSparkline: true,
+  trackRecentlyViewed: true,
+  profiles: [],
+  filterPresets: [],
+  ui: { layout: "grid", detailWidth: 380, treeExpanded: {}, recentlyViewed: [] },
 };
 
 /** How recent a plugin's registry debut must be to earn the "New" badge. */
 export const NEW_WINDOW_DAYS = 14;
 
-type ListKey = "favoritePlugins" | "ignoredPlugins" | "ignoredAuthors" | "ignoredCategories";
+type StringListKey = "favoritePlugins" | "ignoredPlugins" | "ignoredAuthors" | "ignoredCategories";
 
 export class BetterStoreSettingTab extends PluginSettingTab {
   constructor(app: App, private plugin: BetterStorePlugin) {
@@ -58,7 +78,7 @@ export class BetterStoreSettingTab extends PluginSettingTab {
     await this.plugin.saveSettings();
   }
 
-  private removableList(heading: string, emptyState: string, key: ListKey): SettingDefinitionItem {
+  private removableList(heading: string, emptyState: string, key: StringListKey): SettingDefinitionItem {
     return {
       type: "list",
       heading,
@@ -80,14 +100,18 @@ export class BetterStoreSettingTab extends PluginSettingTab {
         name: "GitHub token",
         desc: "Optional. Raises the GitHub API rate limit (60/hour without a token) used for stars, issues, and release data. A classic token with no scopes is enough.",
         render: (setting: Setting) => {
+          let timer: number | null = null;
           setting.addText((text) => {
             text.inputEl.type = "password";
             text
               .setPlaceholder("ghp_...")
               .setValue(this.plugin.settings.githubToken)
-              .onChange(async (value) => {
-                this.plugin.settings.githubToken = value.trim();
-                await this.plugin.saveSettings();
+              .onChange((value) => {
+                if (timer != null) window.clearTimeout(timer);
+                timer = window.setTimeout(() => {
+                  this.plugin.settings.githubToken = value.trim();
+                  void this.plugin.saveSettings();
+                }, 600);
               });
           });
         },
@@ -116,6 +140,32 @@ export class BetterStoreSettingTab extends PluginSettingTab {
         control: { type: "toggle", key: "showNewBadges", defaultValue: true },
       },
       {
+        name: "Track recently viewed plugins",
+        desc: "Ranks plugins you've opened recently at the top of the quick-jump search.",
+        control: { type: "toggle", key: "trackRecentlyViewed", defaultValue: true },
+      },
+      {
+        type: "group",
+        heading: "Detail pane",
+        items: [
+          {
+            name: "Show maintenance health",
+            desc: "A healthy / aging / at-risk chip based on update recency and release cadence.",
+            control: { type: "toggle", key: "showHealth", defaultValue: true },
+          },
+          {
+            name: "Show similar plugins",
+            desc: "Related plugins by shared categories and keywords.",
+            control: { type: "toggle", key: "showSimilar", defaultValue: true },
+          },
+          {
+            name: "Show download history chart",
+            desc: "A small sparkline built from your catalog-refresh snapshots.",
+            control: { type: "toggle", key: "showSparkline", defaultValue: true },
+          },
+        ],
+      },
+      {
         type: "group",
         heading: "Updates",
         items: [
@@ -130,6 +180,56 @@ export class BetterStoreSettingTab extends PluginSettingTab {
             control: { type: "toggle", key: "updateNotice", defaultValue: true },
           },
         ],
+      },
+      {
+        type: "group",
+        heading: "Portability",
+        items: [
+          {
+            name: "Export plugin list (Markdown)",
+            desc: "Copies a Markdown table of your installed plugins to the clipboard.",
+            action: () => void this.plugin.exportPluginList("markdown"),
+          },
+          {
+            name: "Export plugin list (JSON)",
+            desc: "Copies a JSON export of your installed plugins to the clipboard.",
+            action: () => void this.plugin.exportPluginList("json"),
+          },
+          {
+            name: "Import plugin list…",
+            desc: "Paste an exported list to see what's missing from this vault.",
+            action: () => new ImportModal(this.app, this.plugin).open(),
+          },
+        ],
+      },
+      {
+        type: "list",
+        heading: "Profiles",
+        emptyState: "No profiles. Save one from Better Store's Installed tab.",
+        items: this.plugin.settings.profiles.map((p) => ({
+          name: p.name,
+          desc: `${p.pluginIds.length} plugins`,
+        })),
+        onDelete: (index) => {
+          const next = [...this.plugin.settings.profiles];
+          next.splice(index, 1);
+          this.plugin.settings.profiles = next;
+          void this.plugin.saveSettings();
+          this.update();
+        },
+      },
+      {
+        type: "list",
+        heading: "Filter presets",
+        emptyState: "No presets. Save one from the browse sidebar.",
+        items: this.plugin.settings.filterPresets.map((p) => ({ name: p.name })),
+        onDelete: (index) => {
+          const next = [...this.plugin.settings.filterPresets];
+          next.splice(index, 1);
+          this.plugin.settings.filterPresets = next;
+          void this.plugin.saveSettings();
+          this.update();
+        },
       },
       this.removableList(
         "Starred plugins",
