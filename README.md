@@ -116,6 +116,12 @@ src/
     └── store-context.ts typed access to Obsidian internals
 ```
 
+## Privacy & Permissions
+
+- **Network** — requests go only to the official `obsidianmd/obsidian-releases` registry, `raw.githubusercontent.com`, and `api.github.com`. No telemetry, no third-party services.
+- **Clipboard** — write-only, and only when you click a copy/export action. The plugin never reads your clipboard.
+- **Storage** — settings and UI state live in Obsidian's plugin data (`data.json`); caches live in the plugin's own folder.
+
 ## Self-hosting
 
 The repository ships a `.gitlab-ci.yml`, so the project can also be hosted and built on a self-hosted GitLab instance — the pipeline runs the same verify/build steps, publishes the plugin files as artifacts, and serves the docs site via GitLab Pages.

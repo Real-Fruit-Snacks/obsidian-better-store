@@ -1,6 +1,6 @@
 {
   "name": "better-store",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A polished community plugin browser for Obsidian",
   "main": "main.js",
   "type": "module",

@@ -4,6 +4,12 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] - 2026-07-12
+
+### Changed
+- Removed the last localStorage usage (the one-time UI-state migration shim from 0.2.1); all state now lives exclusively in Obsidian's plugin data. Users upgrading directly from 0.1.x may need to re-pick their layout and detail-pane width once.
+- README documents the plugin's privacy posture: clipboard access is write-only (export/copy actions), and network requests go only to the official registry and GitHub.
+
 ## [0.3.0] - 2026-07-12
 
 ### Added
@@ -128,6 +134,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.1]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.1
 [0.3.0]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.0
 [0.2.1]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.2.1
 [0.2.0]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.2.0
