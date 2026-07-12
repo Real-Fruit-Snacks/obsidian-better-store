@@ -38,16 +38,18 @@
       if (current.id !== entry.id) return; // user switched plugins mid-fetch
       await MarkdownRenderer.render(plugin.app, md, el, "", view);
     } catch {
-      el.createEl("p", { text: current.description });
+      if (current.id === entry.id) el.createEl("p", { text: current.description });
     } finally {
-      readmeLoading = false;
+      if (current.id === entry.id) readmeLoading = false;
     }
 
     try {
       const e = await plugin.service.getEnrichment(current.repo);
       if (current.id === entry.id) enrichment = e;
     } catch (err) {
-      enrichError = err instanceof RateLimitError ? err.message : "GitHub data unavailable.";
+      if (current.id === entry.id) {
+        enrichError = err instanceof RateLimitError ? err.message : "GitHub data unavailable.";
+      }
     }
   }
 
