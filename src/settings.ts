@@ -101,15 +101,39 @@ export class BetterStoreSettingTab extends PluginSettingTab {
         desc: "Optional. Raises the GitHub API rate limit (60/hour without a token) used for stars, issues, and release data. A classic token with no scopes is enough. Stored in Obsidian's secret storage, not in plugin data.",
         render: (setting: Setting) => {
           let timer: number | null = null;
+          let pending: string | null = null;
+          const flush = () => {
+            if (timer != null) window.clearTimeout(timer);
+            timer = null;
+            if (pending != null) {
+              this.plugin.setGithubToken(pending);
+              pending = null;
+            }
+          };
           setting.addComponent((el) => {
             const secret = new SecretComponent(this.app, el);
             secret.setValue(this.plugin.getGithubToken());
             secret.onChange((value) => {
+              pending = value.trim();
               if (timer != null) window.clearTimeout(timer);
-              timer = window.setTimeout(() => this.plugin.setGithubToken(value.trim()), 600);
+              timer = window.setTimeout(flush, 600);
             });
             return secret;
           });
+          setting.addButton((btn) =>
+            btn
+              .setButtonText("Test")
+              .setTooltip("Verify the token against the GitHub API")
+              .onClick(async () => {
+                flush(); // a just-typed token may still be waiting on the save debounce
+                btn.setDisabled(true).setButtonText("Testing…");
+                try {
+                  await this.plugin.testGithubToken();
+                } finally {
+                  btn.setDisabled(false).setButtonText("Test");
+                }
+              })
+          );
         },
       },
       {

@@ -75,7 +75,7 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| GitHub token | — | Optional. Raises the GitHub API rate limit (60/hr without) used for stars, issues, and releases. A classic token with **no scopes** is enough. Stored in **Obsidian's secret storage**, not in plugin data — it doesn't travel with `data.json` backups or sync. |
+| GitHub token | — | Optional. Raises the GitHub API rate limit (60/hr without) used for stars, issues, and releases. A classic token with **no scopes** is enough. Stored in **Obsidian's secret storage**, not in plugin data — it doesn't travel with `data.json` backups or sync. A **Test** button verifies the token against the GitHub API and reports your remaining rate limit. |
 | Cache lifetime | 12 h | How long the plugin catalog is cached. Manual refresh in the store header. |
 | Default sort | Downloads | Downloads, recently updated, name, or trending. |
 | Open the store in | Tab | Tab, split, or a new window (desktop-only; falls back to a tab on mobile). |
@@ -143,7 +143,7 @@ npm install
 npm run dev            # watch build
 npm run check          # TypeScript type check
 npm run check:svelte   # Svelte component type check
-npm test               # unit tests (83)
+npm test               # unit tests (90)
 npm run build          # production build + bundle verification
 ```
 

@@ -1,6 +1,7 @@
 import { Notice, Platform, Plugin, requestUrl } from "obsidian";
 import { DataService, type ServiceIO } from "./data/service";
 import { compareVersions } from "./data/versions";
+import { summarizeTokenCheck } from "./data/token";
 import { buildExportList, exportJson, exportMarkdown } from "./data/portability";
 import { diffProfile, type PluginProfile } from "./data/profiles";
 import { BetterStoreSettingTab, DEFAULT_SETTINGS, type BetterStoreSettings } from "./settings";
@@ -190,6 +191,22 @@ export default class BetterStorePlugin extends Plugin {
 
   getGithubToken(): string {
     return this.app.secretStorage.getSecret(GITHUB_TOKEN_SECRET) ?? "";
+  }
+
+  /** Check the stored token against the GitHub API and report the result in a notice. */
+  async testGithubToken(): Promise<void> {
+    const token = this.getGithubToken();
+    try {
+      // /rate_limit is free — it never counts against the quota.
+      const res = await requestUrl({
+        url: "https://api.github.com/rate_limit",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        throw: false,
+      });
+      new Notice(summarizeTokenCheck(token !== "", res.status, res.text));
+    } catch {
+      new Notice("Could not reach the GitHub API — check your connection.");
+    }
   }
 
   /** Store the token in Obsidian's secret storage and refresh the service. */

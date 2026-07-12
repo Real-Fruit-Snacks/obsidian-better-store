@@ -4,6 +4,14 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.6] - 2026-07-12
+
+### Added
+- **Test button** next to the GitHub token setting: verifies the token against the GitHub API (a free endpoint that doesn't consume quota) and reports whether it's valid, expired, or ignored, along with your remaining hourly rate limit. Works without a token too — it then reports the anonymous 60/hour baseline.
+
+### Fixed
+- Clicking Test right after typing a token now saves it first (the field's debounced save is flushed), so the test always checks what you just entered.
+
 ## [0.3.5] - 2026-07-12
 
 ### Fixed
@@ -155,6 +163,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.6]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.6
 [0.3.5]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.5
 [0.3.4]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.4
 [0.3.3]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.3
