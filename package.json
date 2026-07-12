@@ -1,12 +1,12 @@
 {
   "name": "better-store",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A polished community plugin browser for Obsidian",
   "main": "main.js",
   "type": "module",
   "scripts": {
     "dev": "node esbuild.config.mjs",
-    "build": "node esbuild.config.mjs production",
+    "build": "node esbuild.config.mjs production && node scripts/verify-bundle.mjs",
     "test": "vitest run",
     "check": "tsc --noEmit"
   },
