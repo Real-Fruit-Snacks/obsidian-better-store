@@ -30,6 +30,8 @@
   let selected = $state<PluginEntry | null>(null);
   /** Bumped whenever settings save so derived sets re-read plugin.settings. */
   let settingsTick = $state(0);
+  /** Bumped when a GitHub token is linked so the detail pane re-fetches. */
+  let tokenTick = $state(0);
 
   let filters = $state<FilterState>({
     ...EMPTY_FILTER,
@@ -282,6 +284,9 @@
       settingsTick += 1;
     });
     const unsubscribeDetail = plugin.registerDetailListener((id) => showDetail(id));
+    const unsubscribeToken = plugin.registerTokenListener(() => {
+      tokenTick += 1;
+    });
     const onEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && selected) {
         selected = null;
@@ -293,6 +298,7 @@
       window.clearInterval(installedPoll);
       unsubscribeSettings();
       unsubscribeDetail();
+      unsubscribeToken();
       view.contentEl.removeEventListener("keydown", onEscape);
     };
   });
@@ -363,6 +369,7 @@
         <DetailPane
           {plugin}
           {view}
+          refreshTick={tokenTick}
           entry={selected}
           installed={installedIds.has(selected.id)}
           starred={favoriteIds.has(selected.id)}
@@ -427,6 +434,7 @@
         <DetailPane
           {plugin}
           {view}
+          refreshTick={tokenTick}
           entry={selected}
           installed={installedIds.has(selected.id)}
           starred={favoriteIds.has(selected.id)}

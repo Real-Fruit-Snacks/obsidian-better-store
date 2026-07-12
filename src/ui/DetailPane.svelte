@@ -19,6 +19,7 @@
     installed,
     starred,
     similar,
+    refreshTick = 0,
     onSelectEntry,
     onToggleStar,
     onClose,
@@ -29,6 +30,8 @@
     installed: boolean;
     starred: boolean;
     similar: PluginEntry[];
+    /** Bump to re-fetch GitHub data (e.g. after a token is linked). */
+    refreshTick?: number;
     onSelectEntry: (entry: PluginEntry) => void;
     onToggleStar: () => void;
     onClose: () => void;
@@ -73,6 +76,7 @@
   $effect(() => {
     const current = entry;
     const el = readmeEl;
+    void refreshTick; // re-fetch when a newly linked token unlocks GitHub data
     if (!el) return;
     untrack(() => void loadDetails(current, el));
   });

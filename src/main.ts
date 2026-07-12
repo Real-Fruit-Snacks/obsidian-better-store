@@ -20,6 +20,7 @@ export default class BetterStorePlugin extends Plugin {
   pendingDetailId: string | null = null;
   private settingsListeners: (() => void)[] = [];
   private detailListeners: ((id: string) => void)[] = [];
+  private tokenListeners: (() => void)[] = [];
   private serviceKey = "";
   private ribbonEl: HTMLElement | null = null;
   private lastNotifiedUpdateCount = 0;
@@ -202,12 +203,15 @@ export default class BetterStorePlugin extends Plugin {
     this.service = this.createService();
   }
 
-  /** Check the linked token against the GitHub API and report the result in a notice. */
-  async testGithubToken(): Promise<void> {
+  /**
+   * Check the linked token against the GitHub API and report the result in a
+   * notice. Returns whether the token was accepted.
+   */
+  async testGithubToken(): Promise<boolean> {
     const id = this.settings.githubSecretId;
     if (id && this.app.secretStorage.getSecret(id) == null) {
       new Notice(`The linked secret "${id}" no longer exists — link another one.`);
-      return;
+      return false;
     }
     const token = this.getGithubToken();
     try {
@@ -217,10 +221,30 @@ export default class BetterStorePlugin extends Plugin {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         throw: false,
       });
-      new Notice(summarizeTokenCheck(token !== "", res.status, res.text));
+      const check = summarizeTokenCheck(token !== "", res.status, res.text);
+      new Notice(check.message);
+      return check.valid;
     } catch {
       new Notice("Could not reach the GitHub API — check your connection.");
+      return false;
     }
+  }
+
+  /**
+   * A token was just linked and verified: put it to work right away.
+   * Open views re-fetch GitHub data that may have failed on the anonymous
+   * rate limit, and the update check reruns now that it can afford to.
+   */
+  onTokenLinked(): void {
+    for (const cb of this.tokenListeners) cb();
+    if (this.settings.backgroundUpdateCheck) void this.checkForUpdates();
+  }
+
+  registerTokenListener(cb: () => void): () => void {
+    this.tokenListeners.push(cb);
+    return () => {
+      this.tokenListeners = this.tokenListeners.filter((c) => c !== cb);
+    };
   }
 
   registerSettingsListener(cb: () => void): () => void {

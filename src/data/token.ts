@@ -17,10 +17,16 @@ export function resolveLegacySecret(
   return { secretId: legacyId, scrubLegacy: false };
 }
 
-/** Interpret a GitHub `/rate_limit` response as a human-readable token check. */
-export function summarizeTokenCheck(hasToken: boolean, status: number, body: string): string {
-  if (status === 401) return "GitHub token is invalid or expired.";
-  if (status >= 400) return `GitHub API returned HTTP ${status} — try again later.`;
+export interface TokenCheck {
+  /** True only when a provided token was accepted with a raised rate limit. */
+  valid: boolean;
+  message: string;
+}
+
+/** Interpret a GitHub `/rate_limit` response as a token check. */
+export function summarizeTokenCheck(hasToken: boolean, status: number, body: string): TokenCheck {
+  if (status === 401) return { valid: false, message: "GitHub token is invalid or expired." };
+  if (status >= 400) return { valid: false, message: `GitHub API returned HTTP ${status} — try again later.` };
 
   let limit: number | undefined;
   let remaining: number | undefined;
@@ -35,11 +41,13 @@ export function summarizeTokenCheck(hasToken: boolean, status: number, body: str
   } catch {
     // fall through to the generic message
   }
-  if (limit == null || remaining == null) return "GitHub API responded, but the rate limit could not be read.";
+  if (limit == null || remaining == null) {
+    return { valid: false, message: "GitHub API responded, but the rate limit could not be read." };
+  }
 
   const quota = `${remaining.toLocaleString()} of ${limit.toLocaleString()} requests remaining this hour`;
-  if (!hasToken) return `No token set — using the anonymous limit (${quota}).`;
+  if (!hasToken) return { valid: false, message: `No token set — using the anonymous limit (${quota}).` };
   // A valid token raises the core limit well above the anonymous 60.
-  if (limit <= 60) return `Token was not accepted — still on the anonymous limit (${quota}).`;
-  return `GitHub token is valid — ${quota}.`;
+  if (limit <= 60) return { valid: false, message: `Token was not accepted — still on the anonymous limit (${quota}).` };
+  return { valid: true, message: `GitHub token is valid — ${quota}.` };
 }

@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.10] - 2026-07-12
+
+### Added
+- A freshly linked (and valid) GitHub token is put to work immediately: an open detail pane re-fetches its stars / issues / release data — clearing any "GitHub data unavailable" state left by the anonymous rate limit — and the background update check reruns right away so the ribbon badge reflects the raised quota. Pressing Test later just reports; it doesn't retrigger these.
+
 ## [0.3.9] - 2026-07-12
 
 ### Changed
@@ -180,6 +185,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.10]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.10
 [0.3.9]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.9
 [0.3.8]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.8
 [0.3.7]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.7

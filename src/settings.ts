@@ -112,8 +112,9 @@ export class BetterStoreSettingTab extends PluginSettingTab {
               void (async () => {
                 const next = (id ?? "").trim();
                 await this.plugin.setGithubSecretId(next);
-                // Verify right away so a bad link surfaces now, not days later.
-                if (next) await this.plugin.testGithubToken();
+                // Verify right away so a bad link surfaces now, not days
+                // later — and put a good token straight to work.
+                if (next && (await this.plugin.testGithubToken())) this.plugin.onTokenLinked();
               })();
             });
             return secret;
