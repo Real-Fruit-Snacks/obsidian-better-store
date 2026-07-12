@@ -41,6 +41,8 @@
     );
   });
 
+  let lastLatest: Record<string, string | null> = {};
+
   function rebuild(latestVersions: Record<string, string | null>): void {
     infos = buildInstalledInfo(api.manifests, new Set(api.enabledPlugins), entries, latestVersions, Date.now());
   }
@@ -55,8 +57,23 @@
           latest[i.id] = await plugin.service.getLatestVersion(i.repo as string);
         })
     );
+    lastLatest = latest;
     rebuild(latest);
     checking = false;
+  });
+
+  // No Obsidian event fires for installs/uninstalls/toggles done elsewhere
+  // (native dialog, another device syncing config) — poll while the tab is open.
+  onMount(() => {
+    const poll = window.setInterval(() => {
+      const ids = Object.keys(api.manifests);
+      const changed =
+        ids.length !== infos.length ||
+        ids.some((id) => !infos.some((i) => i.id === id)) ||
+        infos.some((i) => i.enabled !== api.enabledPlugins.has(i.id));
+      if (changed) rebuild(lastLatest);
+    }, 2000);
+    return () => window.clearInterval(poll);
   });
 
   async function toggle(info: InstalledInfo): Promise<void> {

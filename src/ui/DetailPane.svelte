@@ -13,8 +13,15 @@
     plugin,
     view,
     entry,
+    installed,
     onClose,
-  }: { plugin: BetterStorePlugin; view: BetterStoreView; entry: PluginEntry; onClose: () => void } = $props();
+  }: {
+    plugin: BetterStorePlugin;
+    view: BetterStoreView;
+    entry: PluginEntry;
+    installed: boolean;
+    onClose: () => void;
+  } = $props();
 
   let readmeEl: HTMLElement | undefined = $state();
   let enrichment = $state<Enrichment | null>(null);
@@ -101,7 +108,10 @@
   ></div>
   <div class="bs-detail-header">
     <div class="bs-detail-title">
-      <h3>{entry.name}</h3>
+      <h3>
+        {entry.name}
+        {#if installed}<span class="bs-badge bs-badge-installed">Installed</span>{/if}
+      </h3>
       <span class="bs-detail-author">by {entry.author}</span>
     </div>
     <button class="bs-detail-close" title="Close" aria-label="Close details" onclick={onClose}><Icon name="x" /></button>
@@ -117,7 +127,9 @@
   </div>
 
   <div class="bs-detail-actions">
-    <button class="mod-cta" onclick={openNative}>Open in Community Plugins</button>
+    <button class="mod-cta" onclick={openNative}>
+      {installed ? "Open in Community Plugins" : "Install via Community Plugins"}
+    </button>
     <a href={`https://github.com/${entry.repo}`} target="_blank" rel="noopener">Repository</a>
     {#if enrichment?.fundingUrl}
       <a href={enrichment.fundingUrl} target="_blank" rel="noopener">Support author</a>

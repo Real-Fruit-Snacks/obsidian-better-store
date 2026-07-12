@@ -105,7 +105,16 @@
 
   onMount(() => {
     void load();
-    return plugin.registerSettingsListener(() => {
+    // Obsidian fires no event when a plugin is installed via the native
+    // dialog, so poll the manifests while the view is open (cheap: key read
+    // over ~dozens of entries) to keep Installed badges and state fresh.
+    const installedPoll = window.setInterval(() => {
+      const fresh = getInstalledIds(plugin.app);
+      if (fresh.size !== installedIds.size || [...fresh].some((id) => !installedIds.has(id))) {
+        installedIds = fresh;
+      }
+    }, 2000);
+    const unsubscribe = plugin.registerSettingsListener(() => {
       if (plugin.settings.hideInstalledByDefault !== lastHideInstalledDefault) {
         lastHideInstalledDefault = plugin.settings.hideInstalledByDefault;
         filters = { ...filters, hideInstalled: plugin.settings.hideInstalledByDefault };
@@ -113,6 +122,10 @@
       // Re-render for ignore-list changes; catalog itself is unaffected.
       entries = [...entries];
     });
+    return () => {
+      window.clearInterval(installedPoll);
+      unsubscribe();
+    };
   });
 </script>
 
@@ -150,8 +163,17 @@
   {:else if tab === "installed"}
     <div class="bs-body">
       <main class="bs-main">
-        <InstalledTab {plugin} {entries} onSelect={(entry) => { tab = "all"; selected = entry; }} />
+        <InstalledTab {plugin} {entries} onSelect={(entry) => (selected = entry)} />
       </main>
+      {#if selected}
+        <DetailPane
+          {plugin}
+          {view}
+          entry={selected}
+          installed={installedIds.has(selected.id)}
+          onClose={() => (selected = null)}
+        />
+      {/if}
     </div>
   {:else}
     <div class="bs-body">
@@ -176,7 +198,13 @@
         {/if}
       </main>
       {#if selected}
-        <DetailPane {plugin} {view} entry={selected} onClose={() => (selected = null)} />
+        <DetailPane
+          {plugin}
+          {view}
+          entry={selected}
+          installed={installedIds.has(selected.id)}
+          onClose={() => (selected = null)}
+        />
       {/if}
     </div>
   {/if}
