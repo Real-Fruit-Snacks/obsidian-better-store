@@ -1,0 +1,49 @@
+# GitLab CI for self-hosted or air-gapped GitLab instances.
+#
+# Requirements on the runner:
+#   - a node:20 image available locally (or any runner with Node 20+)
+#   - an npm registry mirror if the instance has no internet access
+#     (set npm config: registry=https://your-mirror/)
+#
+# The build job publishes the four files an Obsidian vault needs
+# (main.js, manifest.json, styles.css, versions.json) as artifacts.
+# The pages job serves the docs/ site via GitLab Pages.
+
+stages:
+  - verify
+  - build
+  - deploy
+
+default:
+  image: node:20
+
+verify:
+  stage: verify
+  script:
+    - npm ci
+    - npm run check
+    - npm test
+
+build:
+  stage: build
+  script:
+    - npm ci
+    - npm run build
+  artifacts:
+    name: "better-store-$CI_COMMIT_REF_NAME"
+    paths:
+      - main.js
+      - manifest.json
+      - styles.css
+      - versions.json
+
+pages:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - mkdir -p public
+    - cp -r docs/. public/
+  artifacts:
+    paths:
+      - public
