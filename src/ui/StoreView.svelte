@@ -3,7 +3,7 @@
   import type BetterStorePlugin from "../main";
   import type { BetterStoreView } from "../view";
   import type { PluginEntry } from "../data/types";
-  import { EMPTY_FILTER, filterPlugins, type FilterState } from "../data/filter";
+  import { EMPTY_FILTER, filterPlugins, type FilterState, type SortKey } from "../data/filter";
   import { getInstalledIds, type TabId } from "./store-context";
   import FilterSidebar from "./FilterSidebar.svelte";
   import PluginCard from "./PluginCard.svelte";
@@ -35,11 +35,18 @@
     { id: "installed", label: "Installed" },
   ];
 
-  let effectiveFilters = $derived<FilterState>(
-    tab === "updated" ? { ...filters, sort: "updated" }
-    : tab === "trending" ? { ...filters, sort: "trending" }
-    : filters
+  let trendingReady = $derived(Object.keys(trendingDeltas).length > 0);
+
+  let requestedSort = $derived<SortKey>(
+    tab === "updated" ? "updated" : tab === "trending" ? "trending" : filters.sort
   );
+
+  // Without snapshot history all trending deltas are zero, which would yield
+  // an arbitrary order — fall back to downloads until history exists.
+  let effectiveFilters = $derived<FilterState>({
+    ...filters,
+    sort: requestedSort === "trending" && !trendingReady ? "downloads" : requestedSort,
+  });
 
   let visible = $derived(
     filterPlugins(entries, effectiveFilters, {
@@ -130,9 +137,9 @@
     <div class="bs-banner">Showing cached data — the registry could not be refreshed.</div>
   {/if}
 
-  {#if tab === "trending" && !loading && Object.keys(trendingDeltas).length === 0}
-    <div class="bs-banner">
-      Trending compares download counts across catalog refreshes, so it needs a few days of history. Check back after using Better Store for a while.
+  {#if requestedSort === "trending" && !loading && !trendingReady}
+    <div class="bs-banner bs-banner-info">
+      Trending compares download counts across catalog refreshes, so it needs a couple of days of history — sorted by downloads for now.
     </div>
   {/if}
 

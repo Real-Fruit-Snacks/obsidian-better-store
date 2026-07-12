@@ -513,3 +513,9 @@
   color: var(--text-faint);
   font-size: var(--font-ui-small);
 }
+
+.bs-banner-info {
+  background: var(--background-secondary);
+  border-left: 3px solid var(--interactive-accent);
+  color: var(--text-muted);
+}
