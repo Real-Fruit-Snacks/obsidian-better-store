@@ -517,3 +517,90 @@
   border-left: 3px solid var(--interactive-accent);
   color: var(--text-muted);
 }
+
+/* Tree view */
+.bs-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bs-tree {
+  padding: 0 8px 16px;
+  font-size: var(--font-ui-small);
+  user-select: none;
+}
+
+.bs-tree-folder,
+.bs-tree-item,
+.bs-tree-more {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  padding-left: calc(8px + var(--bs-depth, 0) * 18px);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+}
+
+.bs-tree-folder:hover,
+.bs-tree-item:hover,
+.bs-tree-more:hover {
+  background: var(--background-modifier-hover);
+}
+
+.bs-tree-folder {
+  color: var(--text-normal);
+}
+
+.bs-tree-label {
+  font-weight: 600;
+}
+
+.bs-tree-count {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-size: 10.5px;
+}
+
+.bs-tree-stale .bs-tree-label {
+  color: var(--text-muted);
+}
+
+.bs-tree-item {
+  color: var(--text-muted);
+}
+
+.bs-tree-item .bs-icon {
+  color: var(--text-faint);
+}
+
+.bs-tree-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-normal);
+}
+
+.bs-tree-item-selected {
+  background: color-mix(in srgb, var(--interactive-accent) 14%, transparent);
+}
+
+.bs-tree-item-selected .bs-tree-name {
+  color: var(--interactive-accent);
+}
+
+.bs-tree-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.bs-tree-more {
+  color: var(--text-faint);
+  font-style: italic;
+}

@@ -9,7 +9,9 @@
   import PluginCard from "./PluginCard.svelte";
   import DetailPane from "./DetailPane.svelte";
   import InstalledTab from "./InstalledTab.svelte";
+  import TreeView from "./TreeView.svelte";
   import Icon from "./Icon.svelte";
+  import { buildTree } from "../data/tree";
 
   let { plugin, view }: { plugin: BetterStorePlugin; view: BetterStoreView } = $props();
 
@@ -63,6 +65,20 @@
   const PAGE_SIZE = 60;
   let renderLimit = $state(PAGE_SIZE);
   let shown = $derived(visible.slice(0, renderLimit));
+
+  const LAYOUT_KEY = "better-store-layout";
+  let layout = $state<"grid" | "tree">(localStorage.getItem(LAYOUT_KEY) === "tree" ? "tree" : "grid");
+
+  function toggleLayout(): void {
+    layout = layout === "grid" ? "tree" : "grid";
+    localStorage.setItem(LAYOUT_KEY, layout);
+  }
+
+  let tree = $derived(
+    layout === "tree"
+      ? buildTree(visible, effectiveFilters.sort, { now: Date.now(), trendingDeltas })
+      : null
+  );
 
   function loadMoreSentinel(node: HTMLElement) {
     const observer = new IntersectionObserver(
@@ -141,9 +157,21 @@
         >{t.label}</button>
       {/each}
     </nav>
-    <button class="bs-refresh" title="Refresh catalog" onclick={() => void load(true)} disabled={loading}>
-      <Icon name="refresh-cw" />Refresh
-    </button>
+    <div class="bs-header-actions">
+      {#if tab !== "installed"}
+        <button
+          class="bs-refresh"
+          title={layout === "grid" ? "Switch to tree view" : "Switch to grid view"}
+          aria-label={layout === "grid" ? "Switch to tree view" : "Switch to grid view"}
+          onclick={toggleLayout}
+        >
+          <Icon name={layout === "grid" ? "list-tree" : "layout-grid"} />{layout === "grid" ? "Tree" : "Grid"}
+        </button>
+      {/if}
+      <button class="bs-refresh" title="Refresh catalog" onclick={() => void load(true)} disabled={loading}>
+        <Icon name="refresh-cw" />Refresh
+      </button>
+    </div>
   </header>
 
   {#if stale}
@@ -180,21 +208,30 @@
       <FilterSidebar {filters} showSort={tab === "all"} onChange={(next) => { filters = next; renderLimit = PAGE_SIZE; }} />
       <main class="bs-main">
         <div class="bs-count">{visible.length.toLocaleString()} plugins</div>
-        <div class="bs-grid">
-          {#each shown as entry (entry.id)}
-            <PluginCard
-              {entry}
-              installed={installedIds.has(entry.id)}
-              selected={selected?.id === entry.id}
-              onSelect={() => (selected = entry)}
-              onIgnore={() => void ignorePlugin(entry.id)}
-            />
-          {/each}
-        </div>
-        {#if renderLimit < visible.length}
-          <div class="bs-load-more" use:loadMoreSentinel>
-            Showing {renderLimit.toLocaleString()} of {visible.length.toLocaleString()} — scroll for more
+        {#if tree}
+          <TreeView
+            model={tree}
+            {selected}
+            {installedIds}
+            onSelect={(entry) => (selected = entry)}
+          />
+        {:else}
+          <div class="bs-grid">
+            {#each shown as entry (entry.id)}
+              <PluginCard
+                {entry}
+                installed={installedIds.has(entry.id)}
+                selected={selected?.id === entry.id}
+                onSelect={() => (selected = entry)}
+                onIgnore={() => void ignorePlugin(entry.id)}
+              />
+            {/each}
           </div>
+          {#if renderLimit < visible.length}
+            <div class="bs-load-more" use:loadMoreSentinel>
+              Showing {renderLimit.toLocaleString()} of {visible.length.toLocaleString()} — scroll for more
+            </div>
+          {/if}
         {/if}
       </main>
       {#if selected}
