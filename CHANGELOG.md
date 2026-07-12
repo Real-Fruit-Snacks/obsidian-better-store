@@ -4,6 +4,12 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.5] - 2026-07-12
+
+### Fixed
+- Detail-pane resizing now works when the store is open in a popout window (pointer listeners were bound to the main window, which never receives the popout's events).
+- Arrow-key navigation and infinite scroll also bind to the view's own window/document, fixing the same popout blind spot before anyone hit it.
+
 ## [0.3.4] - 2026-07-12
 
 ### Added
@@ -149,6 +155,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.5]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.5
 [0.3.4]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.4
 [0.3.3]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.3
 [0.3.2]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.2

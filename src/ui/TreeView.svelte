@@ -58,7 +58,7 @@
     const handler = (e: KeyboardEvent) => {
       if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
       const rows = Array.from(node.querySelectorAll<HTMLElement>("[data-row]"));
-      const idx = rows.indexOf(document.activeElement as HTMLElement);
+      const idx = rows.indexOf(node.ownerDocument.activeElement as HTMLElement);
       if (idx === -1) return;
       e.preventDefault();
       if (e.key === "ArrowUp" || e.key === "ArrowDown") {

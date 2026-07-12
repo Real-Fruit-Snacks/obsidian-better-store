@@ -126,7 +126,9 @@
   );
 
   function loadMoreSentinel(node: HTMLElement) {
-    const observer = new IntersectionObserver(
+    // Use the element's own window so observation works in popout windows.
+    const win = node.ownerDocument.defaultView ?? window;
+    const observer = new win.IntersectionObserver(
       (intersections) => {
         if (intersections.some((i) => i.isIntersecting) && renderLimit < visible.length) {
           renderLimit += PAGE_SIZE;
@@ -143,7 +145,7 @@
     const handler = (e: KeyboardEvent) => {
       if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
       const cards = Array.from(node.querySelectorAll<HTMLElement>(".bs-card"));
-      const idx = cards.indexOf(document.activeElement as HTMLElement);
+      const idx = cards.indexOf(node.ownerDocument.activeElement as HTMLElement);
       if (idx === -1) return;
       e.preventDefault();
       let target: HTMLElement | undefined;

@@ -52,19 +52,22 @@
 
   function startResize(e: PointerEvent): void {
     e.preventDefault();
+    // Bind to the view's own window — in a popout, the main window never
+    // receives these pointer events.
+    const win = (e.currentTarget as HTMLElement).ownerDocument.defaultView ?? window;
     const startX = e.clientX;
     const startWidth = width;
     const onMove = (ev: PointerEvent) => {
       width = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth + (startX - ev.clientX)));
     };
     const onUp = () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
+      win.removeEventListener("pointermove", onMove);
+      win.removeEventListener("pointerup", onUp);
       plugin.settings.ui.detailWidth = Math.round(width);
       void plugin.saveSettings();
     };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
+    win.addEventListener("pointermove", onMove);
+    win.addEventListener("pointerup", onUp);
   }
 
   $effect(() => {
