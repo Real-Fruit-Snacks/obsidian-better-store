@@ -23,7 +23,13 @@
   role="button"
   tabindex="0"
   onclick={onSelect}
-  onkeydown={(e) => { if (e.key === "Enter") onSelect(); }}
+  onkeydown={(e) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSelect();
+    }
+  }}
 >
   <div class="bs-card-top">
     <span class="bs-card-name">{entry.name}</span>
