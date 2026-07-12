@@ -15,6 +15,8 @@ export interface FilterState {
   starredOnly: boolean;
   /** Only plugins that recently appeared in the registry. */
   newOnly: boolean;
+  /** Exact author name to drill into; empty means all authors. */
+  author: string;
 }
 
 export interface FilterContext {
@@ -39,6 +41,7 @@ export const EMPTY_FILTER: FilterState = {
   hideInstalled: false,
   starredOnly: false,
   newOnly: false,
+  author: "",
 };
 
 const MONTH_MS = 30 * 86_400_000;
@@ -53,6 +56,7 @@ export function filterPlugins(entries: PluginEntry[], state: FilterState, ctx: F
     if (e.categories.some((c) => ctx.ignoredCategories.has(c))) return false;
     if (state.starredOnly && !ctx.favoriteIds.has(e.id)) return false;
     if (state.newOnly && !ctx.newIds.has(e.id)) return false;
+    if (state.author && e.author !== state.author) return false;
     if (state.hideInstalled && ctx.installedIds.has(e.id)) return false;
     if (e.downloads < state.minDownloads) return false;
     if (cutoff != null && e.updated < cutoff) return false;

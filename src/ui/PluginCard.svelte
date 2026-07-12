@@ -13,6 +13,7 @@
     onSelect,
     onToggleStar,
     onIgnore,
+    onAuthor,
   }: {
     entry: PluginEntry;
     installed: boolean;
@@ -24,6 +25,7 @@
     onSelect: () => void;
     onToggleStar: () => void;
     onIgnore: (e: MouseEvent) => void;
+    onAuthor: () => void;
   } = $props();
 </script>
 
@@ -63,7 +65,11 @@
   <div class="bs-card-meta">
     <span title="Downloads"><Icon name="download" />{formatCount(entry.downloads)}</span>
     {#if stars != null}<span title="GitHub stars"><Icon name="star" />{formatCount(stars)}</span>{/if}
-    <span>{entry.author}</span>
+    <button
+      class="bs-author-link"
+      title={`Show all plugins by ${entry.author}`}
+      onclick={(e) => { e.stopPropagation(); onAuthor(); }}
+    >{entry.author}</button>
     <span>{formatAge(entry.updated, Date.now())}</span>
   </div>
   <p class="bs-card-desc">{entry.description}</p>

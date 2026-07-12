@@ -22,6 +22,7 @@
     refreshTick = 0,
     onSelectEntry,
     onToggleStar,
+    onDrillAuthor,
     onClose,
   }: {
     plugin: BetterStorePlugin;
@@ -34,6 +35,7 @@
     refreshTick?: number;
     onSelectEntry: (entry: PluginEntry) => void;
     onToggleStar: () => void;
+    onDrillAuthor: (author: string) => void;
     onClose: () => void;
   } = $props();
 
@@ -172,7 +174,7 @@
         {entry.name}
         {#if installed}<span class="bs-badge bs-badge-installed">Installed</span>{/if}
       </h3>
-      <span class="bs-detail-author">by {entry.author}</span>
+      <span class="bs-detail-author">by <button class="bs-author-link" title={`Show all plugins by ${entry.author}`} onclick={() => onDrillAuthor(entry.author)}>{entry.author}</button></span>
     </div>
     <div class="bs-detail-header-actions">
       <button

@@ -6,6 +6,7 @@
   import { buildInstalledInfo, type InstalledInfo } from "../data/installed";
   import type { PluginProfile } from "../data/profiles";
   import { formatAge } from "../data/format";
+  import { isUpdateActionable, muteRemaining, MUTE_OPTIONS, type MuteDuration } from "../data/updates";
   import { getPluginsApi } from "./store-context";
   import { NameModal } from "./modals";
   import Icon from "./Icon.svelte";
@@ -31,20 +32,63 @@
   const api = getPluginsApi(plugin.app);
   const byId = $derived(new Map(entries.map((e) => [e.id, e])));
 
-  let updateCount = $derived(infos.filter((i) => i.updateAvailable).length);
+  /** Bumped when update prefs change so derived values re-read plugin.settings. */
+  let prefsTick = $state(0);
+
+  /** An update the user hasn't skipped, ignored, or that a newer version superseded. */
+  function actionable(info: InstalledInfo): boolean {
+    void prefsTick;
+    return (
+      info.updateAvailable &&
+      info.latestVersion != null &&
+      isUpdateActionable(info.id, info.latestVersion, plugin.updatePrefs())
+    );
+  }
+
+  let updateCount = $derived.by(() => {
+    void prefsTick;
+    return infos.filter(actionable).length;
+  });
+
+  let muteLabel = $derived.by(() => {
+    void prefsTick;
+    return muteRemaining(plugin.updatePrefs(), Date.now());
+  });
 
   let visible = $derived.by(() => {
+    void prefsTick;
     const q = query.trim().toLowerCase();
     const filtered = infos.filter(
       (i) =>
-        (!updatesOnly || i.updateAvailable) &&
+        (!updatesOnly || actionable(i)) &&
         (q === "" || i.name.toLowerCase().includes(q) || i.id.toLowerCase().includes(q))
     );
-    // Updates float to the top; everything else stays alphabetical.
+    // Actionable updates float to the top; everything else stays alphabetical.
     return filtered.sort(
-      (a, b) => Number(b.updateAvailable) - Number(a.updateAvailable) || a.name.localeCompare(b.name)
+      (a, b) => Number(actionable(b)) - Number(actionable(a)) || a.name.localeCompare(b.name)
     );
   });
+
+  async function skipUpdate(info: InstalledInfo): Promise<void> {
+    if (info.latestVersion == null) return;
+    await plugin.skipUpdate(info.id, info.latestVersion);
+    prefsTick += 1;
+  }
+
+  async function ignoreUpdates(info: InstalledInfo): Promise<void> {
+    await plugin.ignorePluginUpdates(info.id);
+    prefsTick += 1;
+  }
+
+  async function muteUpdates(choice: MuteDuration): Promise<void> {
+    await plugin.muteUpdates(choice);
+    prefsTick += 1;
+  }
+
+  async function unmuteUpdates(): Promise<void> {
+    await plugin.unmuteUpdates();
+    prefsTick += 1;
+  }
 
   let lastLatest: Record<string, string | null> = {};
 
@@ -178,6 +222,24 @@
     <button class="bs-chip" title="Save the currently enabled plugins as a profile" onclick={saveProfile}>
       Save profile
     </button>
+    {#if muteLabel}
+      <button class="bs-chip bs-chip-active" title="Update notices are muted" onclick={() => void unmuteUpdates()}>
+        <Icon name="bell-off" />Muted ({muteLabel}) · Unmute
+      </button>
+    {:else}
+      <select
+        class="dropdown bs-mute-select"
+        aria-label="Mute update notices"
+        onchange={(e) => {
+          const choice = e.currentTarget.value as MuteDuration;
+          e.currentTarget.value = "";
+          if (choice) void muteUpdates(choice);
+        }}
+      >
+        <option value="" selected disabled>Mute updates…</option>
+        {#each MUTE_OPTIONS as opt (opt.value)}<option value={opt.value}>{opt.label}</option>{/each}
+      </select>
+    {/if}
     {#if selectedIds.size > 0}
       <span class="bs-bulk-actions">
         <span class="bs-bulk-count">{selectedIds.size} selected</span>
@@ -269,7 +331,7 @@
         {/if}
 
         <div class="bs-installed-actions">
-          {#if info.updateAvailable}
+          {#if actionable(info)}
             <button
               class="bs-update-btn"
               title="Open in Community Plugins to update"
@@ -279,6 +341,26 @@
               }}
             >
               <Icon name="arrow-up" />Update to {info.latestVersion}
+            </button>
+            <button
+              class="bs-update-skip"
+              title={`Skip v${info.latestVersion} — you'll be notified again on the next version`}
+              onclick={(e) => {
+                e.stopPropagation();
+                void skipUpdate(info);
+              }}
+            >
+              Skip this version
+            </button>
+            <button
+              class="bs-update-skip"
+              title="Never check this plugin for updates"
+              onclick={(e) => {
+                e.stopPropagation();
+                void ignoreUpdates(info);
+              }}
+            >
+              Don't check
             </button>
           {/if}
           {#if info.repo}

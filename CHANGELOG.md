@@ -4,6 +4,13 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.12] - 2026-07-12
+
+### Added
+- **Author drill-down** — click an author's name on any card or in the detail pane to see everything they've published. A dismissible bar shows the active author filter.
+- **Update controls on the Installed tab** — for any available update you can **Skip this version** (you'll be notified again when a newer one ships) or turn off update checks for a plugin entirely (**Don't check**). A **Mute updates…** control silences all proactive update nags (ribbon badge and notices) for 1 hour up to 1 week; the Installed tab still shows what's available while muted. Skipped versions, disabled plugins, and the mute status are all reviewable in settings.
+- **Session restore** — the store reopens to the tab you last had open.
+
 ## [0.3.11] - 2026-07-12
 
 ### Added
@@ -190,6 +197,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.12]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.12
 [0.3.11]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.11
 [0.3.10]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.10
 [0.3.9]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.9

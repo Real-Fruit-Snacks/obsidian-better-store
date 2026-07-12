@@ -1,4 +1,5 @@
 import { PluginSettingTab, SecretComponent, type App, type Setting, type SettingDefinitionItem } from "obsidian";
+import { muteRemaining } from "./data/updates";
 import type { FilterState, SortKey } from "./data/filter";
 import type { PluginProfile } from "./data/profiles";
 import type BetterStorePlugin from "./main";
@@ -10,6 +11,8 @@ export interface UiState {
   detailWidth: number;
   treeExpanded: Record<string, string[]>;
   recentlyViewed: string[];
+  /** Tab the store reopens to. */
+  lastTab: "all" | "updated" | "trending" | "installed";
 }
 
 export interface FilterPreset {
@@ -38,6 +41,12 @@ export interface BetterStoreSettings {
   trackRecentlyViewed: boolean;
   profiles: PluginProfile[];
   filterPresets: FilterPreset[];
+  /** Plugin ids the user never wants update checks for. */
+  updateIgnored: string[];
+  /** Plugin id → version the user chose to skip; resurfaces when a newer one ships. */
+  updateSkipped: Record<string, string>;
+  /** Epoch ms until which all update nags are muted; 0 = not muted. */
+  muteUpdatesUntil: number;
   ui: UiState;
 }
 
@@ -61,7 +70,10 @@ export const DEFAULT_SETTINGS: BetterStoreSettings = {
   trackRecentlyViewed: true,
   profiles: [],
   filterPresets: [],
-  ui: { layout: "grid", detailWidth: 380, treeExpanded: {}, recentlyViewed: [] },
+  updateIgnored: [],
+  updateSkipped: {},
+  muteUpdatesUntil: 0,
+  ui: { layout: "grid", detailWidth: 380, treeExpanded: {}, recentlyViewed: [], lastTab: "all" },
 };
 
 /** How recent a plugin's registry debut must be to earn the "New" badge. */
@@ -72,6 +84,13 @@ type StringListKey = "favoritePlugins" | "ignoredPlugins" | "ignoredAuthors" | "
 export class BetterStoreSettingTab extends PluginSettingTab {
   constructor(app: App, private plugin: BetterStorePlugin) {
     super(app, plugin);
+  }
+
+  private muteLabel(): string | null {
+    return muteRemaining(
+      { ignored: [], skipped: {}, muteUntil: this.plugin.settings.muteUpdatesUntil },
+      Date.now()
+    );
   }
 
   getControlValue(key: string): unknown {
@@ -214,7 +233,50 @@ export class BetterStoreSettingTab extends PluginSettingTab {
             desc: "Shows a notice when the background check finds plugin updates.",
             control: { type: "toggle", key: "updateNotice", defaultValue: true },
           },
+          {
+            name: "Update nags are muted",
+            desc: "Proactive update notices and the ribbon badge are silenced for now. The Installed tab still shows what's available.",
+            visible: () => this.muteLabel() != null,
+            action: () => {
+              this.plugin.settings.muteUpdatesUntil = 0;
+              void this.plugin.saveSettings();
+              void this.plugin.checkForUpdates();
+              this.update();
+            },
+          },
         ],
+      },
+      {
+        type: "list",
+        heading: "Update checks disabled",
+        emptyState: "No plugins excluded. Use \"Don't check for updates\" on an installed plugin's card.",
+        items: this.plugin.settings.updateIgnored.map((id) => ({ name: id })),
+        onDelete: (index) => {
+          const next = [...this.plugin.settings.updateIgnored];
+          next.splice(index, 1);
+          this.plugin.settings.updateIgnored = next;
+          void this.plugin.saveSettings();
+          this.update();
+        },
+      },
+      {
+        type: "list",
+        heading: "Skipped update versions",
+        emptyState: "No skipped versions. Use \"Skip this version\" on an installed plugin's update.",
+        items: Object.entries(this.plugin.settings.updateSkipped).map(([id, version]) => ({
+          name: id,
+          desc: `skipped v${version}`,
+        })),
+        onDelete: (index) => {
+          const ids = Object.keys(this.plugin.settings.updateSkipped);
+          const id = ids[index];
+          if (id == null) return;
+          const next = { ...this.plugin.settings.updateSkipped };
+          delete next[id];
+          this.plugin.settings.updateSkipped = next;
+          void this.plugin.saveSettings();
+          this.update();
+        },
       },
       {
         type: "group",

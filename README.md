@@ -87,6 +87,7 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 | Profiles / Filter presets | — | Review and delete saved profiles and presets. |
 | Check for updates in the background | On | Checks installed plugins on the cache-lifetime cadence and marks the ribbon icon. |
 | Notify when updates are found | On | Shows a notice when the background check finds updates. |
+| Update controls | — | On the Installed tab: skip a specific version, stop checking a plugin, or mute all update nags for 1 hour–1 week. Skipped versions, disabled plugins, and mute status are reviewable in settings. |
 | Starred plugins | — | Review and unstar favorites. |
 | Ignored plugins / authors / categories | — | Review and remove any ignore rule. |
 
@@ -144,7 +145,7 @@ npm install
 npm run dev            # watch build
 npm run check          # TypeScript type check
 npm run check:svelte   # Svelte component type check
-npm test               # unit tests (99)
+npm test               # unit tests (107)
 npm run build          # production build + bundle verification
 ```
 

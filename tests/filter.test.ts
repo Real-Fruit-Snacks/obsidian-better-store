@@ -83,4 +83,10 @@ describe("filterPlugins", () => {
     const c = ctx({ newIds: new Set(["ai-helper"]) });
     expect(filterPlugins(entries, { ...EMPTY_FILTER, newOnly: true }, c).map((e) => e.id)).toEqual(["ai-helper"]);
   });
+
+  it("author drill-down keeps only that author's plugins (exact match)", () => {
+    expect(filterPlugins(entries, { ...EMPTY_FILTER, author: "Ann" }, ctx()).map((e) => e.id)).toEqual(["ai-helper"]);
+    // Default author "A" is shared by the other two entries.
+    expect(filterPlugins(entries, { ...EMPTY_FILTER, author: "A" }, ctx()).map((e) => e.id).sort()).toEqual(["tasks", "themer"]);
+  });
 });

@@ -2,6 +2,7 @@ import { Notice, Platform, Plugin, requestUrl } from "obsidian";
 import { DataService, type ServiceIO } from "./data/service";
 import { compareVersions } from "./data/versions";
 import { resolveLegacySecret, summarizeTokenCheck } from "./data/token";
+import { isMuted, isUpdateActionable, muteDeadline, type MuteDuration, type UpdatePrefs } from "./data/updates";
 import { buildExportList, exportJson, exportMarkdown } from "./data/portability";
 import { diffProfile, type PluginProfile } from "./data/profiles";
 import { BetterStoreSettingTab, DEFAULT_SETTINGS, type BetterStoreSettings } from "./settings";
@@ -127,12 +128,13 @@ export default class BetterStorePlugin extends Plugin {
     };
   }
 
-  /** Count installed catalog plugins with newer upstream versions; badge the ribbon. */
+  /** Count installed catalog plugins with actionable upstream updates; badge the ribbon. */
   async checkForUpdates(): Promise<number> {
     try {
       const catalog = await this.service.loadCatalog();
       const byId = new Map(catalog.entries.map((e) => [e.id, e]));
       const manifests = getPluginsApi(this.app).manifests;
+      const prefs = this.updatePrefs();
       let count = 0;
       await Promise.all(
         Object.values(manifests).map(async (m) => {
@@ -140,15 +142,21 @@ export default class BetterStorePlugin extends Plugin {
           const entry = byId.get(m.id);
           if (!entry) return;
           const latest = await this.service.getLatestVersion(entry.repo);
-          if (latest != null && compareVersions(latest, m.version) > 0) count++;
+          if (latest != null && compareVersions(latest, m.version) > 0 && isUpdateActionable(m.id, latest, prefs)) {
+            count++;
+          }
         })
       );
-      this.ribbonEl?.toggleClass("bs-ribbon-updates", count > 0);
+      // Mute silences the proactive nag (ribbon badge + notice) without
+      // touching the Installed tab, where the user is actively looking.
+      const muted = isMuted(prefs, Date.now());
+      const shown = muted ? 0 : count;
+      this.ribbonEl?.toggleClass("bs-ribbon-updates", shown > 0);
       this.ribbonEl?.setAttribute(
         "aria-label",
-        count > 0 ? `Better Store — ${count} update${count === 1 ? "" : "s"} available` : "Open Better Store"
+        shown > 0 ? `Better Store — ${shown} update${shown === 1 ? "" : "s"} available` : "Open Better Store"
       );
-      if (this.settings.updateNotice && count > this.lastNotifiedUpdateCount) {
+      if (this.settings.updateNotice && !muted && count > this.lastNotifiedUpdateCount) {
         new Notice(`Better Store: ${count} plugin update${count === 1 ? "" : "s"} available.`);
       }
       this.lastNotifiedUpdateCount = count;
@@ -156,6 +164,44 @@ export default class BetterStorePlugin extends Plugin {
     } catch {
       return 0;
     }
+  }
+
+  /** Current update-suppression preferences from settings. */
+  updatePrefs(): UpdatePrefs {
+    return {
+      ignored: this.settings.updateIgnored,
+      skipped: this.settings.updateSkipped,
+      muteUntil: this.settings.muteUpdatesUntil,
+    };
+  }
+
+  /** Suppress this specific version; it resurfaces once a newer one ships. */
+  async skipUpdate(id: string, version: string): Promise<void> {
+    this.settings.updateSkipped = { ...this.settings.updateSkipped, [id]: version };
+    await this.saveSettings();
+    await this.checkForUpdates();
+  }
+
+  /** Never flag updates for this plugin again. */
+  async ignorePluginUpdates(id: string): Promise<void> {
+    if (!this.settings.updateIgnored.includes(id)) {
+      this.settings.updateIgnored = [...this.settings.updateIgnored, id];
+      await this.saveSettings();
+      await this.checkForUpdates();
+    }
+  }
+
+  /** Silence all proactive update nags until the chosen duration elapses. */
+  async muteUpdates(choice: MuteDuration): Promise<void> {
+    this.settings.muteUpdatesUntil = muteDeadline(choice, Date.now());
+    await this.saveSettings();
+    await this.checkForUpdates();
+  }
+
+  async unmuteUpdates(): Promise<void> {
+    this.settings.muteUpdatesUntil = 0;
+    await this.saveSettings();
+    await this.checkForUpdates();
   }
 
   async activateView(): Promise<void> {

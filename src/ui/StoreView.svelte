@@ -24,7 +24,7 @@
   let loading = $state(true);
   let stale = $state(false);
   let error = $state<string | null>(null);
-  let tab = $state<TabId>("all");
+  let tab = $state<TabId>(plugin.settings.ui.lastTab ?? "all");
   let trendingDeltas = $state<Record<string, number>>({});
   let installedIds = $state<Set<string>>(new Set());
   let newIds = $state<Set<string>>(new Set());
@@ -293,6 +293,26 @@
     renderLimit = PAGE_SIZE;
   }
 
+  function setTab(next: TabId): void {
+    tab = next;
+    selected = null;
+    renderLimit = PAGE_SIZE;
+    plugin.settings.ui.lastTab = next;
+    void plugin.saveSettings();
+  }
+
+  /** Author drill-down: show everything by one author on the All tab. */
+  function drillAuthor(author: string): void {
+    filters = { ...EMPTY_FILTER, sort: filters.sort, author };
+    renderLimit = PAGE_SIZE;
+    setTab("all");
+  }
+
+  function clearAuthor(): void {
+    filters = { ...filters, author: "" };
+    renderLimit = PAGE_SIZE;
+  }
+
   async function toggleFavorite(id: string): Promise<void> {
     plugin.settings.favoritePlugins = plugin.settings.favoritePlugins.includes(id)
       ? plugin.settings.favoritePlugins.filter((f) => f !== id)
@@ -352,7 +372,7 @@
           class="bs-tab"
           class:bs-tab-active={tab === t.id}
           aria-pressed={tab === t.id}
-          onclick={() => { tab = t.id; selected = null; renderLimit = PAGE_SIZE; }}
+          onclick={() => setTab(t.id)}
         >{t.label}</button>
       {/each}
     </nav>
@@ -416,6 +436,7 @@
           {similar}
           onSelectEntry={(entry) => (selected = entry)}
           onToggleStar={() => void toggleFavorite(selected!.id)}
+          onDrillAuthor={drillAuthor}
           onClose={() => (selected = null)}
         />
       {/if}
@@ -430,6 +451,15 @@
         onSavePreset={savePreset}
       />
       <main class="bs-main">
+        {#if filters.author}
+          <div class="bs-author-filter">
+            <Icon name="user" />
+            <span>Plugins by <strong>{filters.author}</strong></span>
+            <button class="bs-author-clear" title="Clear author filter" aria-label="Clear author filter" onclick={clearAuthor}>
+              <Icon name="x" />
+            </button>
+          </div>
+        {/if}
         <div class="bs-count">{visible.length.toLocaleString()} plugins</div>
         {#if visible.length === 0}
           <div class="bs-empty">
@@ -461,6 +491,7 @@
                 onSelect={() => (selected = entry)}
                 onToggleStar={() => void toggleFavorite(entry.id)}
                 onIgnore={(e) => openIgnoreMenu(e, entry)}
+                onAuthor={() => drillAuthor(entry.author)}
               />
             {/each}
           </div>
@@ -482,6 +513,7 @@
           {similar}
           onSelectEntry={(entry) => (selected = entry)}
           onToggleStar={() => void toggleFavorite(selected!.id)}
+          onDrillAuthor={drillAuthor}
           onClose={() => (selected = null)}
         />
       {/if}
