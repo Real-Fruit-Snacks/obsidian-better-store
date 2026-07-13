@@ -290,6 +290,26 @@
   margin-top: auto;
 }
 
+/* Browse-card footer: categories on the left, an "Installed" badge pinned
+   to the bottom-right corner. */
+.bs-card-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.bs-card-footer .bs-card-cats {
+  margin-top: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.bs-card-footer .bs-badge-installed {
+  flex-shrink: 0;
+}
+
 /* Detail pane (width set inline; user-resizable via drag handle) */
 .bs-detail {
   position: relative;

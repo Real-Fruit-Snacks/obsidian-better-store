@@ -30,7 +30,7 @@
 </script>
 
 <div
-  class="bs-card"
+  class="bs-card bs-card-browse"
   class:bs-card-selected={selected}
   role="button"
   tabindex="0"
@@ -46,7 +46,6 @@
   <div class="bs-card-top">
     <span class="bs-card-name">{entry.name}</span>
     {#if isNew}<span class="bs-badge bs-badge-new">New</span>{/if}
-    {#if installed}<span class="bs-badge bs-badge-installed">Installed</span>{/if}
     <button
       class="bs-star"
       class:bs-star-active={starred}
@@ -73,7 +72,10 @@
     <span>{formatAge(entry.updated, Date.now())}</span>
   </div>
   <p class="bs-card-desc">{entry.description}</p>
-  <div class="bs-card-cats">
-    {#each entry.categories as cat (cat)}<span class="bs-chip bs-chip-small">{cat}</span>{/each}
+  <div class="bs-card-footer">
+    <div class="bs-card-cats">
+      {#each entry.categories as cat (cat)}<span class="bs-chip bs-chip-small">{cat}</span>{/each}
+    </div>
+    {#if installed}<span class="bs-badge bs-badge-installed">Installed</span>{/if}
   </div>
 </div>

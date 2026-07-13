@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.23] - 2026-07-12
+
+### Changed
+- In card (grid) view, the "Installed" badge moved from the top of each card to the bottom-right corner, pinned to the card's bottom edge so it aligns across cards. This declutters the title row (leaving the name, "New" badge, and star/ignore actions) and gives the status a calmer, consistent spot.
+
 ## [0.3.22] - 2026-07-12
 
 ### Fixed
@@ -260,6 +265,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.23]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.23
 [0.3.22]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.22
 [0.3.21]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.21
 [0.3.20]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.20
