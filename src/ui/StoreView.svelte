@@ -159,6 +159,8 @@
   }
 
   let layout = $state<"grid" | "tree">(plugin.settings.ui.layout);
+  /** Mobile/narrow only: whether the filter sidebar drawer is open. */
+  let showFilters = $state(false);
 
   function toggleLayout(): void {
     layout = layout === "grid" ? "tree" : "grid";
@@ -400,6 +402,15 @@
     </nav>
     <div class="bs-header-actions">
       {#if tab !== "installed"}
+        <button
+          class="bs-refresh bs-filters-toggle"
+          class:bs-tab-active={showFilters}
+          title="Show or hide filters"
+          aria-pressed={showFilters}
+          onclick={() => (showFilters = !showFilters)}
+        >
+          <Icon name="sliders-horizontal" />Filters
+        </button>
         {#if scanState.running}
           <button class="bs-refresh bs-scan-progress" title="Cancel the GitHub scan" onclick={() => plugin.cancelCatalogScan()}>
             <Icon name="loader" />Scanning {scanState.done.toLocaleString()}/{scanState.total.toLocaleString()} · Cancel
@@ -480,7 +491,7 @@
       {/if}
     </div>
   {:else}
-    <div class="bs-body">
+    <div class="bs-body" class:bs-filters-open={showFilters}>
       <FilterSidebar
         {filters}
         showSort={tab === "all"}

@@ -9,6 +9,9 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  /* Query container so the layout responds to the pane's width — narrow
+     splits on desktop and phones alike — not just the viewport. */
+  container-type: inline-size;
 }
 
 .bs-header {
@@ -82,6 +85,13 @@
   display: flex;
   flex: 1;
   min-height: 0;
+  /* Positioning context for the mobile full-screen detail overlay. */
+  position: relative;
+}
+
+/* Filters drawer toggle — only shown at narrow widths (see the container query). */
+.bs-filters-toggle {
+  display: none;
 }
 
 .bs-main {
@@ -1206,4 +1216,72 @@
 
 .bs-brat-empty {
   font-style: italic;
+}
+
+/* ---- Responsive: narrow panes and phones ---- */
+@container (max-width: 640px) {
+  /* Header/toolbars wrap instead of overflowing. */
+  .bs-header,
+  .bs-installed-toolbar {
+    flex-wrap: wrap;
+  }
+
+  /* Filters become a drawer above the grid, toggled by the Filters button. */
+  .bs-filters-toggle {
+    display: inline-flex;
+  }
+
+  .bs-body {
+    flex-direction: column;
+  }
+
+  .bs-sidebar {
+    display: none;
+    width: auto;
+    max-height: 55vh;
+    border-right: none;
+    border-bottom: 1px solid var(--background-modifier-border);
+  }
+
+  .bs-body.bs-filters-open .bs-sidebar {
+    display: flex;
+  }
+
+  /* Single-column card grid. */
+  .bs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Detail pane covers the list as a full-screen sheet with its own close button. */
+  .bs-detail {
+    position: absolute;
+    inset: 0;
+    width: auto !important;
+    min-width: 0;
+    max-width: none;
+    border-left: none;
+    background: var(--background-primary);
+    z-index: 5;
+  }
+
+  /* Drag-to-resize is meaningless on touch. */
+  .bs-detail-resize {
+    display: none;
+  }
+
+  /* Comfortable touch targets. */
+  .bs-star,
+  .bs-ignore,
+  .bs-detail-close,
+  .bs-copy-btn {
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .bs-tree-item,
+  .bs-tree-folder,
+  .bs-tree-more {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
 }

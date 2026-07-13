@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.21] - 2026-07-12
+
+### Added
+- **Mobile / responsive layout.** At narrow widths the desktop three-pane layout collapses to a single column: the filter sidebar becomes a toggle-able drawer (new **Filters** button), the card grid goes full-width, the detail pane opens as a full-screen sheet (with its drag-resize handle hidden), header and Installed toolbars wrap, and tap targets grow. Built with container queries, so it responds to the actual pane width — phones and skinny split panes alike — not just the device.
+
 ## [0.3.20] - 2026-07-12
 
 ### Changed
@@ -250,6 +255,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.21]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.21
 [0.3.20]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.20
 [0.3.19]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.19
 [0.3.18]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.18

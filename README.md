@@ -21,6 +21,7 @@ It deliberately does **not** install, update, or remove plugin files itself — 
 ## Features
 
 - **Full workspace view** — a filter sidebar, card grid, and detail pane instead of a cramped modal; opens in a tab, a split, or its own window. Stays open while you work.
+- **Responsive / mobile** — at narrow widths (phones, or a skinny split pane) the layout collapses to a single column: filters move into a toggle-able drawer, the detail pane opens as a full-screen sheet, and toolbars wrap. Adapts via container queries, so it responds to the pane width, not just the device.
 - **Filters & sorting** — search across name/author/description, category chips, "updated within" (24h → 1 year), minimum downloads, minimum stars, hide installed; sort by downloads, recency, name, trending, GitHub stars, open issues, or recently added.
 - **Author drill-down** — click any author to see everything they've published.
 - **Full-catalog GitHub scan** — with a token, scan every plugin's stars, open issues, and repository creation date into a persistent cache (resumable, cancellable, rate-limit aware) to unlock accurate catalog-wide sorting by those metrics — including a "recently added" view that surfaces genuinely new plugins, not just recently-patched ones.
