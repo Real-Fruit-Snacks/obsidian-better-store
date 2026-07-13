@@ -199,7 +199,7 @@ footer {
         <tr><td>GitHub token</td><td>Optional. Link a secret from Obsidian's secret storage holding a GitHub personal access token — it raises the API rate limit for stars/issues/releases data. A classic token with no scopes is enough. Only the secret's name is stored in plugin data; the token never leaves secret storage. The token is verified automatically when linked and put straight to work — open detail panes re-fetch their GitHub data and the update check reruns. A Test button re-checks anytime, reporting your remaining rate limit.</td></tr>
         <tr><td>Cache lifetime</td><td>How long the plugin catalog is cached (default 12 h). Manual refresh in the store header.</td></tr>
         <tr><td>Default sort</td><td>Downloads, recently updated, name, or trending.</td></tr>
-        <tr><td>Open the store in</td><td>A tab, a split, or a new window (desktop-only; falls back to a tab on mobile).</td></tr>
+        <tr><td>Open the store in</td><td>A tab, a split, or a new window.</td></tr>
         <tr><td>Hide installed</td><td>Start with already-installed plugins hidden.</td></tr>
         <tr><td>Show "New" badges</td><td>Highlight plugins that entered the registry within the last 14 days.</td></tr>
         <tr><td>Show GitHub stars on cards</td><td>With a token linked, star counts load for the cards on screen (one request per plugin, session-cached). Inactive without a token so the anonymous rate limit is saved for the detail pane.</td></tr>

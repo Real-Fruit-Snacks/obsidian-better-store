@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.24] - 2026-07-12
+
+### Changed
+- Flagged the plugin **desktop-only** (`isDesktopOnly: true`). The mobile layout still needs polish, so it's better not to offer it on phones yet. The narrow-pane responsive layout remains for skinny split panes on desktop.
+
 ## [0.3.23] - 2026-07-12
 
 ### Changed
@@ -265,6 +270,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.24]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.24
 [0.3.23]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.23
 [0.3.22]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.22
 [0.3.21]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.21

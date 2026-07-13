@@ -21,7 +21,7 @@ It deliberately does **not** install, update, or remove plugin files itself — 
 ## Features
 
 - **Full workspace view** — a filter sidebar, card grid, and detail pane instead of a cramped modal; opens in a tab, a split, or its own window. Stays open while you work.
-- **Responsive / mobile** — at narrow widths (phones, or a skinny split pane) the layout collapses to a single column: filters move into a toggle-able drawer, the detail pane opens as a full-screen sheet, and toolbars wrap. Adapts via container queries, so it responds to the pane width, not just the device.
+- **Responsive to narrow panes** — in a skinny split pane the layout collapses to a single column: filters move into a toggle-able drawer, the detail pane opens as a full-screen sheet, and toolbars wrap. (Desktop-only for now — the mobile experience still needs polish, so the plugin is flagged desktop-only.)
 - **Filters & sorting** — search across name/author/description, category chips, "updated within" (24h → 1 year), minimum downloads, minimum stars, hide installed; sort by downloads, recency, name, trending, GitHub stars, open issues, or recently added.
 - **Author drill-down** — click any author to see everything they've published.
 - **Full-catalog GitHub scan** — with a token, scan every plugin's stars, open issues, and repository creation date into a persistent cache (resumable, cancellable, rate-limit aware) to unlock accurate catalog-wide sorting by those metrics — including a "recently added" view that surfaces genuinely new plugins, not just recently-patched ones.
@@ -83,7 +83,7 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 | GitHub token | — | Optional. Link a secret from **Obsidian's secret storage** holding a GitHub personal access token — it raises the API rate limit (60/hr without) used for stars, issues, and releases. A classic token with **no scopes** is enough. Only the secret's *name* is stored in plugin data; the token itself never leaves secret storage. The token is verified automatically when linked — and put straight to work: open detail panes re-fetch their GitHub data and the update check reruns. A **Test** button re-checks anytime, reporting your remaining rate limit. |
 | Cache lifetime | 12 h | How long the plugin catalog is cached. Manual refresh in the store header. |
 | Default sort | Downloads | Downloads, recently updated, name, or trending. |
-| Open the store in | Tab | Tab, split, or a new window (desktop-only; falls back to a tab on mobile). |
+| Open the store in | Tab | Tab, split, or a new window. |
 | Hide installed by default | Off | Start browsing with installed plugins hidden. |
 | Show "New" badges | On | Highlight plugins that entered the registry in the last 14 days. |
 | Show GitHub stars on cards | On | With a token linked, fetches star counts for the cards on screen (one request per plugin, session-cached). Stays inactive without a token so the anonymous 60/hr limit is saved for the detail pane. |
