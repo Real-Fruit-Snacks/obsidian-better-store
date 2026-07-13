@@ -25,17 +25,19 @@ It deliberately does **not** install, update, or remove plugin files itself — 
 - **Filters & sorting** — search across name/author/description, category chips, "updated within" (24h → 1 year), minimum downloads, minimum stars, hide installed; sort by downloads, recency, name, trending, GitHub stars, open issues, or recently added.
 - **Author drill-down** — click any author to see everything they've published.
 - **Full-catalog GitHub scan** — with a token, scan every plugin's stars, open issues, and repository creation date into a persistent cache (resumable, cancellable, rate-limit aware) to unlock accurate catalog-wide sorting by those metrics — including a "recently added" view that surfaces genuinely new plugins, not just recently-patched ones.
+- **GitHub stars on cards** — with a token linked, star counts appear on browse cards, fetched only for the cards on screen and cached for the session (togglable).
 - **"New" detection** vs **"recently added"** — the "New only" filter flags plugins that entered the registry since you started using Better Store (exact, but forward-looking); the scanned "recently added" sort uses repo creation date as a catalog-wide proxy for first release.
 - **Heuristic categories** — Tasks, Sync & Backup, AI, Appearance, Editor, Export & Import, Calendar & Time, Data & Queries, Files & Organization, Publishing & Sharing, Integrations. The official registry has no categories, so these are keyword-derived — imperfect by design and easy to refine.
 - **Rich details** — rendered README with images (sanitized), GitHub stars and open issues, recent releases, and funding links, fetched lazily and cached.
 - **Trending** — local download-delta tracking across catalog refreshes. Builds up as you use the plugin; no external service, no telemetry.
 - **Installed dashboard** — current vs. latest version, update badges, enable/disable toggles (with bulk select), "stale" warnings for plugins unmaintained for a year+, changelog links.
 - **BRAT panel** — when [BRAT](https://github.com/TfTHacker/obsidian42-brat) is installed, lists the beta plugins it tracks and offers one-click add / check-for-updates. Better Store only reads BRAT's list and hands off to BRAT's own commands — never touching another plugin's files.
-- **Tree view** — an explorer-style layout with folders derived from the active sort (download tiers, recency, A–Z, trending), a collapsed Stale folder, persistent expansion, and indent guides.
+- **Tree view** — an explorer-style layout with folders derived from the active sort (download tiers, recency, A–Z, trending, GitHub stars, open issues, recently added), a collapsed Stale folder, persistent expansion, and indent guides.
 - **Quick jump** — a fuzzy search command (`Better Store: Search plugins`) that opens any plugin's details from anywhere in Obsidian.
 - **"New" detection** — plugins that entered the registry in the last 14 days get a badge and a "New only" filter (togglable).
 - **Favorites** — star plugins to track them; a "Starred only" filter keeps your watchlist one click away.
 - **Update notifications** — a background check marks the ribbon icon (and optionally shows a notice) when installed plugins have updates.
+- **Update controls** — on the Installed tab, skip a specific version (re-notified on the next one), stop checking a plugin entirely, or mute all update nags for 1 hour to 1 week; all reviewable in settings.
 - **Release notes inline** — expand any release in the detail pane to read its changelog without leaving Obsidian.
 - **Compatibility warnings** — flags plugins whose `minAppVersion` exceeds your Obsidian version before you install.
 - **Keyboard navigation** — arrow keys move through cards and tree rows, Enter opens details, Esc closes the pane.
@@ -75,6 +77,7 @@ Open the store from the ribbon icon or the command palette (`Better Store: Open 
 | `Better Store: Apply plugin profile` | Switch to a saved enable-set |
 | `Better Store: Export plugin list (Markdown / JSON)` | Copies your installed list to the clipboard |
 | `Better Store: Import plugin list` | Paste an exported list and see what's missing |
+| `Better Store: Scan catalog for GitHub stars & issues` | Fetch stars / open issues / creation dates for the whole catalog (needs a token) |
 
 ### Settings
 
@@ -125,6 +128,10 @@ src/
 │   ├── portability.ts   export/import of plugin lists
 │   ├── health.ts        maintenance assessment
 │   ├── similar.ts       related-plugin scoring
+│   ├── scan.ts          full-catalog scan selection
+│   ├── updates.ts       update suppression (skip / mute / don't-check)
+│   ├── brat.ts          BRAT data parsing + command ids
+│   ├── token.ts         GitHub token check + secret migration
 │   └── ...              versions, readme URL rewriting, formatting
 └── ui/                  Svelte 5 components
     ├── StoreView.svelte tabs, state, wiring
@@ -151,7 +158,7 @@ npm install
 npm run dev            # watch build
 npm run check          # TypeScript type check
 npm run check:svelte   # Svelte component type check
-npm test               # unit tests (134)
+npm test               # unit tests (138)
 npm run build          # production build + bundle verification
 ```
 
