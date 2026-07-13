@@ -100,10 +100,17 @@
     });
   });
 
+  // Stable empty set so the filter doesn't take a dependency on installedIds
+  // unless it actually needs it (hideInstalled). Without this, the 2s installed
+  // poll re-runs the full filter/sort + re-render on every install change —
+  // a multi-second freeze in tree view. Badges still update from installedIds
+  // directly, which is cheap.
+  const NO_INSTALLED = new Set<string>();
+
   let visible = $derived.by(() => {
     void settingsTick;
     return filterPlugins(entries, effectiveFilters, {
-      installedIds,
+      installedIds: effectiveFilters.hideInstalled ? installedIds : NO_INSTALLED,
       ignoredIds: new Set(plugin.settings.ignoredPlugins),
       ignoredAuthors: new Set(plugin.settings.ignoredAuthors),
       ignoredCategories: new Set(plugin.settings.ignoredCategories),

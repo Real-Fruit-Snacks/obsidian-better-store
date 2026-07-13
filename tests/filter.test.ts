@@ -92,6 +92,12 @@ describe("filterPlugins", () => {
     expect(got.map((e) => e.id)).toEqual(["ai-helper"]);
   });
 
+  it("ignores installedIds entirely when hideInstalled is false (lets the view skip refiltering on install changes)", () => {
+    const withInstalled = filterPlugins(entries, EMPTY_FILTER, ctx({ installedIds: new Set(["tasks", "themer"]) }));
+    const without = filterPlugins(entries, EMPTY_FILTER, ctx({ installedIds: new Set() }));
+    expect(withInstalled.map((e) => e.id)).toEqual(without.map((e) => e.id));
+  });
+
   it("sorts by downloads desc, updated desc, name asc, trending desc", () => {
     expect(filterPlugins(entries, { ...EMPTY_FILTER, sort: "downloads" }, ctx()).map((e) => e.id)).toEqual(["tasks", "ai-helper", "themer"]);
     expect(filterPlugins(entries, { ...EMPTY_FILTER, sort: "updated" }, ctx()).map((e) => e.id)).toEqual(["tasks", "themer", "ai-helper"]);

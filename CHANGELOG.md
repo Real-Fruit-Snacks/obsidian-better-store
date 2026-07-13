@@ -4,6 +4,11 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.22] - 2026-07-12
+
+### Fixed
+- Eliminated a multi-second UI freeze (`[Violation] 'setInterval' handler took ~1900ms`) that could fire when installed-plugin state changed. The 2-second poll that keeps installed badges fresh was feeding the installed set into the main filter, so every change re-filtered and re-sorted the whole catalog and re-rendered the grid/tree. The filter now only depends on installed state when "Hide installed" is on; otherwise badges update on their own, which is cheap.
+
 ## [0.3.21] - 2026-07-12
 
 ### Added
@@ -255,6 +260,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.22]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.22
 [0.3.21]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.21
 [0.3.20]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.20
 [0.3.19]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.19
