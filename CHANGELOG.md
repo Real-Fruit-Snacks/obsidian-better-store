@@ -4,6 +4,16 @@ All notable changes to Better Store are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.25] - 2026-07-19
+
+### Fixed
+- The catalog scan no longer re-filters and re-renders the whole catalog once per scanned repo. Progress updates are now throttled (scan notifications at most twice a second; the scanned-stats refresh that invalidates the grid/tree at most every 5 seconds, plus once when the scan finishes), so the store stays smooth for the full duration of a long scan. Found in a full self-review.
+- Disabling or uninstalling the plugin now cancels a running catalog scan instead of letting it keep fetching and writing in the background; the scan resumes where it left off next time.
+- A refused clipboard write during plugin-list export (e.g. window not focused) now shows a notice instead of failing silently.
+
+### Changed
+- The `obsidian` typings dependency is pinned to the tested version (was `latest`) so builds are reproducible and API-surface upgrades are deliberate.
+
 ## [0.3.24] - 2026-07-12
 
 ### Changed
@@ -270,6 +280,7 @@ All notable changes to Better Store are documented here. The format follows
 ### Added
 - Initial release: full-tab community plugin browser with filters, heuristic categories, sorting, rendered README detail pane with GitHub stats, trending from local snapshots, installed-plugins dashboard with update checks and enable/disable, ignore list, and settings.
 
+[0.3.25]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.25
 [0.3.24]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.24
 [0.3.23]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.23
 [0.3.22]: https://github.com/Real-Fruit-Snacks/obsidian-better-store/releases/tag/0.3.22

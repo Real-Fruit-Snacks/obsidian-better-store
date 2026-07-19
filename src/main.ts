@@ -32,6 +32,7 @@ export default class BetterStorePlugin extends Plugin {
     rateLimited: false,
   };
   private scanCancelled = false;
+  private lastScanNotify = 0;
   private serviceKey = "";
   private ribbonEl: HTMLElement | null = null;
   private lastNotifiedUpdateCount = 0;
@@ -87,6 +88,12 @@ export default class BetterStorePlugin extends Plugin {
     });
   }
 
+  onunload(): void {
+    // A catalog scan can run for hours; stop it from fetching and writing
+    // after the plugin is disabled. It's resumable, so nothing is lost.
+    this.scanCancelled = true;
+  }
+
   async openQuickJump(): Promise<void> {
     try {
       const catalog = await this.service.loadCatalog();
@@ -106,8 +113,13 @@ export default class BetterStorePlugin extends Plugin {
     const list = buildExportList(api.manifests, new Set(api.enabledPlugins));
     const text =
       format === "json" ? exportJson(list) : exportMarkdown(list, new Date().toISOString().slice(0, 10));
-    await navigator.clipboard.writeText(text);
-    new Notice(`Better Store: copied ${list.length} plugins to the clipboard as ${format === "json" ? "JSON" : "Markdown"}.`);
+    try {
+      await navigator.clipboard.writeText(text);
+      new Notice(`Better Store: copied ${list.length} plugins to the clipboard as ${format === "json" ? "JSON" : "Markdown"}.`);
+    } catch {
+      // Clipboard writes can be refused when the window isn't focused.
+      new Notice("Better Store: could not write to the clipboard — click into Obsidian and try again.");
+    }
   }
 
   /** Enable/disable installed plugins to match a saved profile. */
@@ -368,7 +380,13 @@ export default class BetterStorePlugin extends Plugin {
       maxAgeMs,
       onProgress: (done, total) => {
         this.scanState = { running: true, done, total, rateLimited: false };
-        this.notifyScan();
+        // Progress can tick many times per second; cap the listener fan-out
+        // so views aren't re-rendered per scanned repo.
+        const now = Date.now();
+        if (now - this.lastScanNotify >= 500) {
+          this.lastScanNotify = now;
+          this.notifyScan();
+        }
       },
       isCancelled: () => this.scanCancelled,
     });

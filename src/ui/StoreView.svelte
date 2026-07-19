@@ -373,9 +373,17 @@
       starsHalted = false;
       tokenTick += 1;
     });
+    let lastStatsRefresh = 0;
     const unsubscribeScan = plugin.registerScanListener(() => {
       scanState = { ...plugin.scanState };
-      void refreshRepoStats();
+      // Refreshing repoStats invalidates the whole filtered view (and the
+      // tree), so during a long scan do it sparingly — and always once more
+      // when the scan reaches a terminal state.
+      const now = Date.now();
+      if (!plugin.scanState.running || now - lastStatsRefresh >= 5000) {
+        lastStatsRefresh = now;
+        void refreshRepoStats();
+      }
     });
     const onEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && selected) {
